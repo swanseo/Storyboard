@@ -49,9 +49,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100
 .btn-icon:hover{color:var(--tx)}
 .btn-icon.danger:hover{color:var(--danger)}
 
-.drive-status{
-  font:400 11px/1 var(--mono);padding:4px 10px;border-radius:6px;
-}
+.drive-status{font:400 11px/1 var(--mono);padding:4px 10px;border-radius:6px}
 .drive-status.on{color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2)}
 .drive-status.off{color:var(--m);background:var(--s2);border:1px solid var(--b)}
 
@@ -119,7 +117,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100
 .modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
 .field{display:flex;flex-direction:column;gap:5px}
 .field span{font:400 11px/1 var(--mono);color:var(--m);text-transform:uppercase;letter-spacing:.04em}
-.field input,.field select,.field textarea{
+.field input,.field select{
   background:var(--s2);border:1px solid var(--b);border-radius:8px;
   padding:10px 12px;font:13px/1.4 var(--sans);color:var(--tx);outline:none;
 }
@@ -151,10 +149,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100
 }
 .empty-state p{color:var(--m);font:400 14px/1.6 var(--sans);max-width:400px}
 
-.loading-bar{
-  position:fixed;top:0;left:0;height:3px;background:var(--acc);z-index:999;
-  animation:loadAnim 1.5s ease infinite;
-}
+.loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--acc);z-index:999;animation:loadAnim 1.5s ease infinite}
 @keyframes loadAnim{0%{width:0}50%{width:60%}100%{width:100%;opacity:0}}
 
 @media(max-width:600px){
@@ -167,315 +162,90 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100
 <div id="app"></div>
 
 <script>
-// ═══════════════════════════════════════
-//  STORYBOARD PROJECT DASHBOARD
-//  + Google Drive Integration
-// ═══════════════════════════════════════
+const CLIENT_ID='10428481224-0326ltmibbchkk05juarqqk5kkb31q3u.apps.googleusercontent.com';
+const SCOPES='https://www.googleapis.com/auth/drive.file';
+const DISCOVERY_DOC='https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const ROOT_FOLDER_NAME='Storyboard_Projects';
 
-const CLIENT_ID = '10428481224-0326ltmibbchkk05juarqqk5kkb31q3u.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-const ROOT_FOLDER_NAME = 'Storyboard_Projects';
+const COLORS=['#c8f04d','#4dc8f0','#c084fc','#f97316','#f43f5e','#14b8a6','#facc15','#60a5fa'];
+const TYPES=[{value:'board',label:'스토리보드 편집 (Board)'},{value:'viewer',label:'시네마틱 뷰어 (Viewer)'}];
 
-const COLORS = ['#c8f04d','#4dc8f0','#c084fc','#f97316','#f43f5e','#14b8a6','#facc15','#60a5fa'];
-const TYPES = [
-  {value:'board', label:'스토리보드 편집 (Board)'},
-  {value:'viewer', label:'시네마틱 뷰어 (Viewer)'}
-];
+let projects=[],modal=null,toast=null,loading=false;
+let gapiReady=false,gisReady=false,tokenClient=null,driveConnected=false,rootFolderId=null;
 
-let projects = [];
-let modal = null;
-let toast = null;
-let loading = false;
-let gapiReady = false;
-let gisReady = false;
-let tokenClient = null;
-let driveConnected = false;
-let rootFolderId = null; // Drive root folder ID
-
-// ── Persistence ──
-function save(){ localStorage.setItem('sb-projects', JSON.stringify(projects)); }
+function save(){localStorage.setItem('sb-projects',JSON.stringify(projects))}
 function load(){
-  try {
-    const raw = localStorage.getItem('sb-projects');
-    if(raw) projects = JSON.parse(raw);
-  } catch(e){}
+  try{const raw=localStorage.getItem('sb-projects');if(raw) projects=JSON.parse(raw)}catch(e){}
   if(projects.length===0){
-    const old = localStorage.getItem('sb-local-v1');
-    if(old){
-      const id = uid();
-      projects.push({
-        id, name:'기존 프로젝트', type:'board', folder:'Legacy',
-        color:'#c8f04d', driveFolderId:'',
-        thumbnail:'', cutCount:0,
-        createdAt: now(), updatedAt: now()
-      });
-      localStorage.setItem('sb-data-'+id, old);
-      save();
-    }
+    const old=localStorage.getItem('sb-local-v1');
+    if(old){const id=uid();projects.push({id,name:'기존 프로젝트',type:'board',folder:'Legacy',color:'#c8f04d',driveFolderId:'',thumbnail:'',cutCount:0,createdAt:now(),updatedAt:now()});localStorage.setItem('sb-data-'+id,old);save()}
   }
 }
+const uid=()=>Math.random().toString(36).slice(2,10);
+function now(){return new Date().toISOString().slice(0,10)}
+function countCuts(projId){try{const raw=localStorage.getItem('sb-data-'+projId);if(!raw) return 0;const d=JSON.parse(raw);if(d.scenes) return d.scenes.reduce((s,sc)=>s+(sc.cuts?sc.cuts.length:0),0)}catch(e){}return 0}
 
-const uid = () => Math.random().toString(36).slice(2,10);
-function now(){ return new Date().toISOString().slice(0,10); }
-
-function countCuts(projId){
-  try {
-    const raw = localStorage.getItem('sb-data-'+projId);
-    if(!raw) return 0;
-    const d = JSON.parse(raw);
-    if(d.scenes) return d.scenes.reduce((s,sc)=>s+(sc.cuts?sc.cuts.length:0),0);
-  } catch(e){}
-  return 0;
-}
-
-// ══════════════════════════
-//  GOOGLE DRIVE API
-// ══════════════════════════
-
-// Load GAPI
-function loadGapi(){
-  return new Promise((res)=>{
-    const s = document.createElement('script');
-    s.src = 'https://apis.google.com/js/api.js';
-    s.onload = () => {
-      gapi.load('client', async () => {
-        await gapi.client.init({ discoveryDocs:[DISCOVERY_DOC] });
-        gapiReady = true;
-        res();
-      });
-    };
-    document.head.appendChild(s);
-  });
-}
-
-// Load GIS (Google Identity Services)
-function loadGis(){
-  return new Promise((res)=>{
-    const s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = () => {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (resp) => {
-          if(resp.error) { console.error('Auth error:', resp); return; }
-          driveConnected = true;
-          localStorage.setItem('sb-drive-connected','1');
-          render();
-          showToast('Google Drive 연결 완료');
-          ensureRootFolder();
-        }
-      });
-      gisReady = true;
-      res();
-    };
-    document.head.appendChild(s);
-  });
-}
-
-function connectDrive(){
-  if(!gapiReady||!gisReady){ showToast('Google API 로딩 중...'); return; }
-  if(gapi.client.getToken()===null){
-    tokenClient.requestAccessToken({prompt:'consent'});
-  } else {
-    tokenClient.requestAccessToken({prompt:''});
-  }
-}
-
-function disconnectDrive(){
-  const token = gapi.client.getToken();
-  if(token){
-    google.accounts.oauth2.revoke(token.access_token);
-    gapi.client.setToken(null);
-  }
-  driveConnected = false;
-  rootFolderId = null;
-  localStorage.removeItem('sb-drive-connected');
-  localStorage.removeItem('sb-root-folder-id');
-  render();
-  showToast('Drive 연결 해제');
-}
-
-// Try silent token refresh
-async function trySilentAuth(){
-  if(!gapiReady||!gisReady) return;
-  if(localStorage.getItem('sb-drive-connected')==='1'){
-    try {
-      tokenClient.requestAccessToken({prompt:''});
-    } catch(e){}
-  }
-}
-
-// ── Drive Folder Operations ──
+function loadGapi(){return new Promise(res=>{const s=document.createElement('script');s.src='https://apis.google.com/js/api.js';s.onload=()=>{gapi.load('client',async()=>{await gapi.client.init({discoveryDocs:[DISCOVERY_DOC]});gapiReady=true;res()})};document.head.appendChild(s)})}
+function loadGis(){return new Promise(res=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>{tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:(resp)=>{if(resp.error)return;driveConnected=true;localStorage.setItem('sb-drive-connected','1');render();showToast('Google Drive 연결 완료');ensureRootFolder()}});gisReady=true;res()};document.head.appendChild(s)})}
+function connectDrive(){if(!gapiReady||!gisReady){showToast('API 로딩 중...');return}if(gapi.client.getToken()===null) tokenClient.requestAccessToken({prompt:'consent'});else tokenClient.requestAccessToken({prompt:''})}
+function disconnectDrive(){const token=gapi.client.getToken();if(token){google.accounts.oauth2.revoke(token.access_token);gapi.client.setToken(null)}driveConnected=false;rootFolderId=null;localStorage.removeItem('sb-drive-connected');localStorage.removeItem('sb-root-folder-id');render();showToast('Drive 연결 해제')}
 
 async function ensureRootFolder(){
-  // Check localStorage cache
-  const cached = localStorage.getItem('sb-root-folder-id');
-  if(cached){
-    // Verify it still exists
-    try {
-      const resp = await gapi.client.drive.files.get({fileId:cached, fields:'id,trashed'});
-      if(!resp.result.trashed){ rootFolderId=cached; return cached; }
-    } catch(e){}
-  }
-
-  // Search for existing
-  try {
-    const resp = await gapi.client.drive.files.list({
-      q: `name='${ROOT_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id,name)', spaces:'drive'
-    });
-    if(resp.result.files && resp.result.files.length>0){
-      rootFolderId = resp.result.files[0].id;
-      localStorage.setItem('sb-root-folder-id', rootFolderId);
-      return rootFolderId;
-    }
-  } catch(e){ console.error('Search root error:', e); }
-
-  // Create
-  try {
-    const resp = await gapi.client.drive.files.create({
-      resource:{ name:ROOT_FOLDER_NAME, mimeType:'application/vnd.google-apps.folder' },
-      fields:'id'
-    });
-    rootFolderId = resp.result.id;
-    localStorage.setItem('sb-root-folder-id', rootFolderId);
-    return rootFolderId;
-  } catch(e){ console.error('Create root error:', e); return null; }
+  const cached=localStorage.getItem('sb-root-folder-id');
+  if(cached){try{const resp=await gapi.client.drive.files.get({fileId:cached,fields:'id,trashed'});if(!resp.result.trashed){rootFolderId=cached;return cached}}catch(e){}}
+  try{const resp=await gapi.client.drive.files.list({q:`name='${ROOT_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,fields:'files(id)',spaces:'drive'});if(resp.result.files&&resp.result.files.length>0){rootFolderId=resp.result.files[0].id;localStorage.setItem('sb-root-folder-id',rootFolderId);return rootFolderId}}catch(e){}
+  try{const resp=await gapi.client.drive.files.create({resource:{name:ROOT_FOLDER_NAME,mimeType:'application/vnd.google-apps.folder'},fields:'id'});rootFolderId=resp.result.id;localStorage.setItem('sb-root-folder-id',rootFolderId);return rootFolderId}catch(e){return null}
 }
+async function createDriveFolder(name,parentId){if(!driveConnected||!parentId) return null;try{const resp=await gapi.client.drive.files.create({resource:{name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]},fields:'id'});return resp.result.id}catch(e){return null}}
+async function createProjectFolder(projectName){if(!driveConnected) return null;await ensureRootFolder();if(!rootFolderId) return null;return await createDriveFolder(projectName.replace(/[\/\\:*?"<>|]/g,'_'),rootFolderId)}
 
-async function createDriveFolder(name, parentId){
-  if(!driveConnected||!parentId) return null;
-  try {
-    const resp = await gapi.client.drive.files.create({
-      resource:{ name, mimeType:'application/vnd.google-apps.folder', parents:[parentId] },
-      fields:'id'
-    });
-    return resp.result.id;
-  } catch(e){ console.error('Create folder error:', e); return null; }
-}
-
-async function createProjectFolder(projectName){
-  if(!driveConnected) return null;
-  await ensureRootFolder();
-  if(!rootFolderId) return null;
-  const safeName = projectName.replace(/[\/\\:*?"<>|]/g,'_');
-  return await createDriveFolder(safeName, rootFolderId);
-}
-
-// ══════════════════
-//  RENDER
-// ══════════════════
 function render(){
-  const app = document.getElementById('app');
-  app.innerHTML = '';
+  const app=document.getElementById('app');app.innerHTML='';
   if(loading) app.appendChild(el('div',{className:'loading-bar'}));
   app.appendChild(renderHeader());
-
-  if(projects.length===0 && !modal){
-    app.appendChild(renderEmpty());
-  } else {
-    app.appendChild(renderGrid());
-  }
-
+  if(projects.length===0&&!modal) app.appendChild(renderEmpty());
+  else app.appendChild(renderGrid());
   if(modal) app.appendChild(renderModal());
   if(toast) app.appendChild(renderToast());
 }
 
-function el(tag,attrs,...ch){
-  const e=document.createElement(tag);
-  if(attrs) Object.entries(attrs).forEach(([k,v])=>{
-    if(k==='className') e.className=v;
-    else if(k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(),v);
-    else if(k==='style'&&typeof v==='object') Object.assign(e.style,v);
-    else e.setAttribute(k,v);
-  });
-  ch.flat().forEach(c=>{if(c!=null) e.appendChild(typeof c==='string'?document.createTextNode(c):c)});
-  return e;
-}
+function el(tag,attrs,...ch){const e=document.createElement(tag);if(attrs) Object.entries(attrs).forEach(([k,v])=>{if(k==='className') e.className=v;else if(k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(),v);else if(k==='style'&&typeof v==='object') Object.assign(e.style,v);else e.setAttribute(k,v)});ch.flat().forEach(c=>{if(c!=null) e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
+function svgIcon(d,size=16){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width',size);s.setAttribute('height',size);s.setAttribute('viewBox','0 0 24 24');s.setAttribute('fill','none');s.setAttribute('stroke','currentColor');s.setAttribute('stroke-width','2');s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);s.appendChild(p);return s}
 
-function svgIcon(d,size=16){
-  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  s.setAttribute('width',size);s.setAttribute('height',size);
-  s.setAttribute('viewBox','0 0 24 24');s.setAttribute('fill','none');
-  s.setAttribute('stroke','currentColor');s.setAttribute('stroke-width','2');
-  s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');
-  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-  p.setAttribute('d',d);s.appendChild(p);return s;
-}
+const ICO={plus:'M12 5v14M5 12h14',trash:'M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z',edit:'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z',copy:'M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v12M12 2h4l4 4v8a2 2 0 01-2 2h-6a2 2 0 01-2-2V4a2 2 0 012-2z',x:'M18 6L6 18M6 6l12 12',folder:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z',export:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3',import:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12',board:'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z',film:'M2 12h4M18 12h4M2 6h4M18 6h4M2 18h4M18 18h4M6 2v20M18 2v20M6 2h12a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z',cloud:'M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z'};
 
-const ICO={
-  plus:'M12 5v14M5 12h14',
-  trash:'M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z',
-  edit:'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z',
-  copy:'M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v12M12 2h4l4 4v8a2 2 0 01-2 2h-6a2 2 0 01-2-2V4a2 2 0 012-2z',
-  x:'M18 6L6 18M6 6l12 12',
-  folder:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z',
-  export:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3',
-  import:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12',
-  board:'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z',
-  film:'M2 12h4M18 12h4M2 6h4M18 6h4M2 18h4M18 18h4M6 2v20M18 2v20M6 2h12a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z',
-  drive:'M12 2L2 19h20L12 2z',
-  cloud:'M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z',
-};
-
-// ── Header ──
 function renderHeader(){
   return el('header',{className:'header'},
-    el('div',null,
-      el('div',{className:'logo'},'STORYBOARD'),
-      el('div',{className:'logo-sub'},`${projects.length} PROJECTS`)
-    ),
+    el('div',null,el('div',{className:'logo'},'STORYBOARD'),el('div',{className:'logo-sub'},`${projects.length} PROJECTS`)),
     el('div',{className:'header-right'},
-      driveConnected
-        ? el('span',{className:'drive-status on'},'● Drive 연결됨')
-        : el('span',{className:'drive-status off'},'○ Drive 미연결'),
-      driveConnected
-        ? el('button',{className:'btn btn-drive connected',onClick:disconnectDrive},svgIcon(ICO.cloud,14),'Drive 해제')
-        : el('button',{className:'btn btn-drive',onClick:connectDrive},svgIcon(ICO.cloud,14),'Drive 연결'),
+      driveConnected?el('span',{className:'drive-status on'},'● Drive 연결됨'):el('span',{className:'drive-status off'},'○ Drive 미연결'),
+      driveConnected?el('button',{className:'btn btn-drive connected',onClick:disconnectDrive},svgIcon(ICO.cloud,14),'Drive 해제'):el('button',{className:'btn btn-drive',onClick:connectDrive},svgIcon(ICO.cloud,14),'Drive 연결'),
       el('button',{className:'btn',onClick:importAllJSON},svgIcon(ICO.import,14),'불러오기'),
-      el('button',{className:'btn btn-acc',onClick:()=>{modal={mode:'new',data:newProjectData()};render();}},svgIcon(ICO.plus,14),'새 프로젝트')
+      el('button',{className:'btn btn-acc',onClick:()=>{modal={mode:'new',data:newProjectData()};render()}},svgIcon(ICO.plus,14),'새 프로젝트')
     )
   );
 }
 
-function newProjectData(){
-  return {id:uid(),name:'',type:'board',folder:'',color:COLORS[0],driveFolderId:'',thumbnail:'',createdAt:now(),updatedAt:now()};
-}
+function newProjectData(){return{id:uid(),name:'',type:'board',folder:'',color:COLORS[0],driveFolderId:'',thumbnail:'',createdAt:now(),updatedAt:now()}}
 
-// ── Grid ──
 function renderGrid(){
   const g=el('div',{className:'grid'});
-
   projects.forEach(p=>{
     const cuts=countCuts(p.id);
     const card=el('div',{className:'card',onClick:()=>openProject(p)});
-
     const thumb=el('div',{className:'card-thumb'});
-    if(p.thumbnail){
-      thumb.appendChild(el('img',{src:convertDriveUrl(p.thumbnail),alt:'',onError:e=>{e.target.style.display='none'}}));
-    } else {
-      thumb.appendChild(el('div',{className:'empty-thumb'},
-        svgIcon(p.type==='viewer'?ICO.film:ICO.board,32),
-        el('br'),
-        p.type==='viewer'?'VIEWER':'BOARD'
-      ));
-    }
+    if(p.thumbnail) thumb.appendChild(el('img',{src:convertDriveUrl(p.thumbnail),alt:'',onError:e=>{e.target.style.display='none'}}));
+    else thumb.appendChild(el('div',{className:'empty-thumb'},svgIcon(p.type==='viewer'?ICO.film:ICO.board,32),el('br'),p.type==='viewer'?'VIEWER':'BOARD'));
     card.appendChild(thumb);
     card.appendChild(el('div',{className:'card-color',style:{background:p.color||COLORS[0]}}));
-
     const body=el('div',{className:'card-body'});
     body.appendChild(el('div',{className:'card-name'},p.name||'이름 없음'));
     if(p.folder) body.appendChild(el('div',{className:'card-folder'},'📁 '+p.folder));
-
     const meta=el('div',{className:'card-meta'});
     meta.appendChild(el('span',{className:'card-pill'},p.type==='viewer'?'VIEWER':'BOARD'));
     meta.appendChild(el('span',{className:'card-pill blue'},cuts+' cuts'));
     if(p.driveFolderId) meta.appendChild(el('span',{className:'card-pill drive'},'☁ Drive'));
-    body.appendChild(meta);
-    card.appendChild(body);
-
+    body.appendChild(meta);card.appendChild(body);
     const footer=el('div',{className:'card-footer'});
     footer.appendChild(el('span',{className:'card-date'},'수정 '+p.updatedAt));
     const actions=el('div',{className:'card-actions'});
@@ -483,212 +253,62 @@ function renderGrid(){
     actions.appendChild(el('button',{className:'btn-icon',title:'복제',onClick:e=>{e.stopPropagation();dupProject(p.id)}},svgIcon(ICO.copy,14)));
     actions.appendChild(el('button',{className:'btn-icon',title:'내보내기',onClick:e=>{e.stopPropagation();exportProject(p.id)}},svgIcon(ICO.export,14)));
     actions.appendChild(el('button',{className:'btn-icon danger',title:'삭제',onClick:e=>{e.stopPropagation();delProject(p.id)}},svgIcon(ICO.trash,14)));
-    footer.appendChild(actions);
-    card.appendChild(footer);
-    g.appendChild(card);
+    footer.appendChild(actions);card.appendChild(footer);g.appendChild(card);
   });
-
   const newCard=el('div',{className:'card card-new',onClick:()=>{modal={mode:'new',data:newProjectData()};render()}});
-  newCard.appendChild(el('div',{className:'card-new-inner'},
-    el('div',{className:'plus'},'+'),
-    el('p',null,'새 프로젝트 추가')
-  ));
-  g.appendChild(newCard);
-  return g;
+  newCard.appendChild(el('div',{className:'card-new-inner'},el('div',{className:'plus'},'+'),el('p',null,'새 프로젝트 추가')));
+  g.appendChild(newCard);return g;
 }
 
-// ── Modal ──
 function renderModal(){
-  const d=modal.data;
-  const isNew=modal.mode==='new';
-
+  const d=modal.data,isNew=modal.mode==='new';
   const ov=el('div',{className:'overlay',onClick:()=>{modal=null;render()}});
   const m=el('div',{className:'modal',onClick:e=>e.stopPropagation()});
-
-  m.appendChild(el('div',{className:'modal-hdr'},
-    el('h2',null,isNew?'새 프로젝트':'프로젝트 편집'),
-    el('button',{className:'btn-icon',onClick:()=>{modal=null;render()}},svgIcon(ICO.x,18))
-  ));
-
+  m.appendChild(el('div',{className:'modal-hdr'},el('h2',null,isNew?'새 프로젝트':'프로젝트 편집'),el('button',{className:'btn-icon',onClick:()=>{modal=null;render()}},svgIcon(ICO.x,18))));
   const body=el('div',{className:'modal-body'});
   body.appendChild(fieldInput('프로젝트 이름','name',d.name,'프로젝트 이름을 입력하세요'));
-
-  const typeField=el('div',{className:'field'});
-  typeField.appendChild(el('span',null,'프로젝트 타입'));
-  const sel=el('select',{onChange:e=>{d.type=e.target.value}});
-  TYPES.forEach(t=>{
-    const opt=el('option',{value:t.value},t.label);
-    if(d.type===t.value) opt.selected=true;
-    sel.appendChild(opt);
-  });
-  typeField.appendChild(sel);
-  body.appendChild(typeField);
-
+  const typeField=el('div',{className:'field'});typeField.appendChild(el('span',null,'프로젝트 타입'));
+  const sel=el('select',{onChange:e=>{d.type=e.target.value}});TYPES.forEach(t=>{const opt=el('option',{value:t.value},t.label);if(d.type===t.value) opt.selected=true;sel.appendChild(opt)});
+  typeField.appendChild(sel);body.appendChild(typeField);
   body.appendChild(fieldInput('폴더명','folder',d.folder,'예: BrandA_LaunchFilm'));
-
-  if(driveConnected && isNew){
-    const driveNote=el('div',{className:'field'});
-    driveNote.appendChild(el('span',{style:{color:'#4dc8f0'}},'☁ Drive 자동 연동'));
-    driveNote.appendChild(el('div',{className:'field-hint',style:{color:'#7abaff'}},'프로젝트 생성 시 구글 드라이브에 폴더가 자동으로 만들어집니다.'));
-    body.appendChild(driveNote);
-  }
-
-  if(!isNew && d.driveFolderId){
-    const driveInfo=el('div',{className:'field'});
-    driveInfo.appendChild(el('span',null,'Drive 폴더'));
-    driveInfo.appendChild(el('div',{className:'field-hint',style:{color:'#4ade80'}},'☁ 연동됨 — ID: '+d.driveFolderId.slice(0,20)+'...'));
-    body.appendChild(driveInfo);
-  }
-
-  body.appendChild(fieldInput('대표 이미지 URL (선택)','thumbnail',d.thumbnail,'구글 드라이브 이미지 URL 또는 외부 URL'));
-
-  const colorField=el('div',{className:'field'});
-  colorField.appendChild(el('span',null,'프로젝트 컬러'));
-  const colorRow=el('div',{className:'color-row'});
-  COLORS.forEach(c=>{
-    colorRow.appendChild(el('div',{
-      className:'color-dot'+(d.color===c?' sel':''),
-      style:{background:c},
-      onClick:()=>{d.color=c;render()}
-    }));
-  });
-  colorField.appendChild(colorRow);
-  body.appendChild(colorField);
-  m.appendChild(body);
-
-  const foot=el('div',{className:'modal-foot'});
-  foot.appendChild(el('button',{className:'btn',onClick:()=>{modal=null;render()}},'취소'));
+  if(driveConnected&&isNew){const dn=el('div',{className:'field'});dn.appendChild(el('span',{style:{color:'#4dc8f0'}},'☁ Drive 자동 연동'));dn.appendChild(el('div',{className:'field-hint',style:{color:'#7abaff'}},'프로젝트 생성 시 구글 드라이브에 폴더가 자동으로 만들어집니다.'));body.appendChild(dn)}
+  if(!isNew&&d.driveFolderId){const di=el('div',{className:'field'});di.appendChild(el('span',null,'Drive 폴더'));di.appendChild(el('div',{className:'field-hint',style:{color:'#4ade80'}},'☁ 연동됨 — ID: '+d.driveFolderId.slice(0,20)+'...'));body.appendChild(di)}
+  body.appendChild(fieldInput('대표 이미지 URL (선택)','thumbnail',d.thumbnail,'이미지 URL'));
+  const colorField=el('div',{className:'field'});colorField.appendChild(el('span',null,'프로젝트 컬러'));
+  const colorRow=el('div',{className:'color-row'});COLORS.forEach(c=>{colorRow.appendChild(el('div',{className:'color-dot'+(d.color===c?' sel':''),style:{background:c},onClick:()=>{d.color=c;render()}}))});
+  colorField.appendChild(colorRow);body.appendChild(colorField);m.appendChild(body);
+  const foot=el('div',{className:'modal-foot'});foot.appendChild(el('button',{className:'btn',onClick:()=>{modal=null;render()}},'취소'));
   foot.appendChild(el('button',{className:'btn btn-acc',onClick:()=>saveProject(d,isNew)},isNew?'프로젝트 생성':'변경 사항 저장'));
-  m.appendChild(foot);
-
-  ov.appendChild(m);
-  return ov;
-
-  function fieldInput(label,key,val,ph){
-    const f=el('div',{className:'field'});
-    f.appendChild(el('span',null,label));
-    const inp=el('input',{type:'text',value:val||'',placeholder:ph||'',onInput:e=>{d[key]=e.target.value}});
-    f.appendChild(inp);
-    return f;
-  }
+  m.appendChild(foot);ov.appendChild(m);return ov;
+  function fieldInput(label,key,val,ph){const f=el('div',{className:'field'});f.appendChild(el('span',null,label));f.appendChild(el('input',{type:'text',value:val||'',placeholder:ph||'',onInput:e=>{d[key]=e.target.value}}));return f}
 }
 
 function renderToast(){return el('div',{className:'toast'},toast)}
 function showToast(msg){toast=msg;render();setTimeout(()=>{toast=null;render()},2500)}
-
 function renderEmpty(){
-  return el('div',{className:'empty-state'},
-    svgIcon(ICO.folder,48),
+  return el('div',{className:'empty-state'},svgIcon(ICO.folder,48),
     el('p',null,'아직 프로젝트가 없습니다.\n첫 번째 프로젝트를 만들어 스토리보드를 시작하세요.'),
-    !driveConnected ? el('p',{style:{fontSize:'12px',color:'#7abaff'}},'💡 Google Drive를 연결하면 이미지가 자동으로 드라이브에 정리됩니다.') : null,
+    !driveConnected?el('p',{style:{fontSize:'12px',color:'#7abaff'}},'💡 Google Drive를 연결하면 이미지가 자동으로 드라이브에 정리됩니다.'):null,
     el('button',{className:'btn btn-acc',onClick:()=>{modal={mode:'new',data:newProjectData()};render()}},svgIcon(ICO.plus,14),'첫 프로젝트 만들기')
   );
 }
 
-// ══════════════════
-//  ACTIONS
-// ══════════════════
 async function saveProject(d,isNew){
-  if(!d.name.trim()){alert('프로젝트 이름을 입력해주세요.');return;}
+  if(!d.name.trim()){alert('프로젝트 이름을 입력해주세요.');return}
   d.updatedAt=now();
-
-  if(isNew){
-    d.createdAt=now();
-    // Create Drive folder if connected
-    if(driveConnected){
-      loading=true;render();
-      const folderId = await createProjectFolder(d.folder||d.name);
-      if(folderId){
-        d.driveFolderId = folderId;
-        showToast('Drive 폴더 생성 완료: '+(d.folder||d.name));
-      }
-      loading=false;
-    }
-    projects.push(d);
-  } else {
-    projects=projects.map(p=>p.id===d.id?d:p);
-  }
-  save();modal=null;render();
-  if(isNew && !driveConnected) showToast('프로젝트 생성 완료');
+  if(isNew){d.createdAt=now();if(driveConnected){loading=true;render();const fId=await createProjectFolder(d.folder||d.name);if(fId){d.driveFolderId=fId;showToast('Drive 폴더 생성 완료')}loading=false}projects.push(d)}
+  else projects=projects.map(p=>p.id===d.id?d:p);
+  save();modal=null;render();if(isNew&&!driveConnected) showToast('프로젝트 생성 완료');
 }
+function delProject(id){const p=projects.find(x=>x.id===id);if(!confirm(`"${p?.name||'이 프로젝트'}"를 삭제할까요?\n(Drive 폴더는 삭제되지 않습니다)`)) return;projects=projects.filter(x=>x.id!==id);localStorage.removeItem('sb-data-'+id);save();render();showToast('프로젝트 삭제 완료')}
+function dupProject(id){const p=projects.find(x=>x.id===id);if(!p) return;const np={...p,id:uid(),name:p.name+' (복사)',driveFolderId:'',createdAt:now(),updatedAt:now()};const data=localStorage.getItem('sb-data-'+id);if(data) localStorage.setItem('sb-data-'+np.id,data);projects.push(np);save();render();showToast('프로젝트 복제 완료')}
+function openProject(p){window.location.href=(p.type==='viewer'?'viewer.html':'board.html')+'?project='+p.id}
+function convertDriveUrl(url){if(!url) return '';const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];return url}
+function exportProject(id){const p=projects.find(x=>x.id===id);if(!p) return;const data=localStorage.getItem('sb-data-'+id);const out={project:p,storyboardData:data?JSON.parse(data):null};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(p.folder||p.name||'project')+'.json';a.click();showToast('내보내기 완료')}
+function importAllJSON(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.multiple=true;inp.onchange=e=>{[...e.target.files].forEach(f=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.project&&d.project.id){const np={...d.project,id:uid(),updatedAt:now()};if(d.storyboardData) localStorage.setItem('sb-data-'+np.id,JSON.stringify(d.storyboardData));projects.push(np)}else if(d.scenes||d.baseFolder){const np={id:uid(),name:f.name.replace('.json',''),type:'board',folder:'',color:COLORS[0],driveFolderId:'',thumbnail:'',createdAt:now(),updatedAt:now()};localStorage.setItem('sb-data-'+np.id,JSON.stringify(d));projects.push(np)}save();render();showToast('불러오기 완료')}catch(err){alert('에러: '+err.message)}};r.readAsText(f)})};inp.click()}
 
-function delProject(id){
-  const p=projects.find(x=>x.id===id);
-  if(!confirm(`"${p?.name||'이 프로젝트'}"를 삭제할까요?\n(Drive 폴더는 삭제되지 않습니다)`)) return;
-  projects=projects.filter(x=>x.id!==id);
-  localStorage.removeItem('sb-data-'+id);
-  save();render();showToast('프로젝트 삭제 완료');
-}
-
-function dupProject(id){
-  const p=projects.find(x=>x.id===id);if(!p) return;
-  const np={...p,id:uid(),name:p.name+' (복사)',driveFolderId:'',createdAt:now(),updatedAt:now()};
-  const data=localStorage.getItem('sb-data-'+id);
-  if(data) localStorage.setItem('sb-data-'+np.id,data);
-  projects.push(np);save();render();showToast('프로젝트 복제 완료');
-}
-
-function openProject(p){
-  const page=p.type==='viewer'?'viewer.html':'board.html';
-  window.location.href=page+'?project='+p.id;
-}
-
-function convertDriveUrl(url){
-  if(!url) return '';
-  const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
-  const m2=url.match(/id=([a-zA-Z0-9_-]+)/);
-  if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
-  return url;
-}
-
-function exportProject(id){
-  const p=projects.find(x=>x.id===id);if(!p) return;
-  const data=localStorage.getItem('sb-data-'+id);
-  const out={project:p,storyboardData:data?JSON.parse(data):null};
-  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download=(p.folder||p.name||'project')+'.json';a.click();
-  showToast('내보내기 완료');
-}
-
-function importAllJSON(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.multiple=true;
-  inp.onchange=e=>{
-    [...e.target.files].forEach(f=>{
-      const r=new FileReader();
-      r.onload=()=>{
-        try{
-          const d=JSON.parse(r.result);
-          if(d.project&&d.project.id){
-            const np={...d.project,id:uid(),updatedAt:now()};
-            if(d.storyboardData) localStorage.setItem('sb-data-'+np.id,JSON.stringify(d.storyboardData));
-            projects.push(np);
-          } else if(d.scenes||d.baseFolder){
-            const np={id:uid(),name:f.name.replace('.json',''),type:'board',folder:'',color:COLORS[0],driveFolderId:'',thumbnail:'',createdAt:now(),updatedAt:now()};
-            localStorage.setItem('sb-data-'+np.id,JSON.stringify(d));
-            projects.push(np);
-          }
-          save();render();showToast('불러오기 완료');
-        }catch(err){alert('JSON 파싱 에러: '+err.message)}
-      };
-      r.readAsText(f);
-    });
-  };
-  inp.click();
-}
-
-// ── INIT ──
-load();
-render();
-
-(async()=>{
-  await Promise.all([loadGapi(), loadGis()]);
-  // Try silent reconnect
-  if(localStorage.getItem('sb-drive-connected')==='1'){
-    trySilentAuth();
-  }
-})();
+load();render();
+(async()=>{await Promise.all([loadGapi(),loadGis()]);if(localStorage.getItem('sb-drive-connected')==='1') try{tokenClient.requestAccessToken({prompt:''})}catch(e){}})();
 </script>
 </body>
 </html>
