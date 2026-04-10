@@ -26,27 +26,29 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   padding:14px 24px;border-bottom:1px solid var(--border);
   position:sticky;top:0;background:rgba(14,14,16,.92);backdrop-filter:blur(12px);z-index:100;
 }
-.header-left{display:flex;align-items:center;gap:14px}
+.header-left{display:flex;align-items:center;gap:12px;flex-shrink:1;overflow:hidden}
 .back-btn{
   display:inline-flex;align-items:center;gap:6px;
   font:600 12px/1 var(--sans);color:var(--muted);background:none;border:none;
-  cursor:pointer;padding:6px 10px;border-radius:6px;transition:all .12s;
+  cursor:pointer;padding:6px 10px;border-radius:6px;transition:all .12s;white-space:nowrap;
 }
 .back-btn:hover{color:var(--text);background:var(--surface2)}
 .logo{font:700 15px/1 var(--mono);letter-spacing:.15em;color:var(--accent);text-transform:uppercase}
-.proj-name{font:600 14px/1 var(--sans);color:var(--text);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stats{font:400 11px/1 var(--mono);color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:4px}
-.header-right{display:flex;align-items:center;gap:8px}
-.drive-badge{font:600 10px/1 var(--mono);padding:3px 8px;border-radius:6px;background:rgba(26,115,232,.1);color:#7abaff;border:1px solid rgba(26,115,232,.2)}
+.proj-name{font:600 14px/1 var(--sans);color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stats{font:400 11px/1 var(--mono);color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:4px;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 
 .btn{
   display:inline-flex;align-items:center;gap:6px;
   font:600 13px/1 var(--sans);border:1px solid var(--border);border-radius:var(--radius);
-  padding:7px 14px;cursor:pointer;transition:all .12s;background:var(--surface2);color:var(--text);
+  padding:7px 14px;cursor:pointer;transition:all .12s;background:var(--surface2);color:var(--text);white-space:nowrap;
 }
 .btn:hover{border-color:var(--muted)}
 .btn-accent{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .btn-accent:hover{filter:brightness(1.1)}
+.btn-drive{background:#1a73e8;color:#fff;border-color:#1a73e8;font-size:12px;padding:6px 12px}
+.btn-drive:hover{filter:brightness(1.1)}
+.btn-drive.connected{background:#0d652d;border-color:#0d652d}
 .btn-sm{padding:5px 10px;font-size:12px}
 .btn-icon{
   background:none;border:none;color:var(--muted);padding:4px 6px;cursor:pointer;
@@ -211,6 +213,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 @media(max-width:600px){
   .form-grid{grid-template-columns:1fr 1fr}
   .cut{width:180px}
+  .header{flex-wrap:wrap;gap:8px}
 }
 </style>
 </head>
@@ -218,11 +221,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div id="app"></div>
 
 <script>
-// ═══════════════════════════════════════════
-//  STORYBOARD BOARD
-//  + Google Drive auto-upload
-// ═══════════════════════════════════════════
-
 const CLIENT_ID='10428481224-0326ltmibbchkk05juarqqk5kkb31q3u.apps.googleusercontent.com';
 const SCOPES='https://www.googleapis.com/auth/drive.file';
 const DISCOVERY_DOC='https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
@@ -239,57 +237,78 @@ const STATE={
 
 const uid=()=>Math.random().toString(36).slice(2,10);
 let gapiReady=false,gisReady=false,tokenClient=null,driveConnected=false;
-
-// sceneFolderIds: { sceneId: driveFolderId }
 let sceneFolderIds={};
 
 // ══════════════════
-//  Google API init
+//  Google API
 // ══════════════════
 function loadGapi(){
   return new Promise(res=>{
+    if(window.gapi){gapi.load('client',async()=>{await gapi.client.init({discoveryDocs:[DISCOVERY_DOC]});gapiReady=true;res()});return}
     const s=document.createElement('script');s.src='https://apis.google.com/js/api.js';
     s.onload=()=>{gapi.load('client',async()=>{await gapi.client.init({discoveryDocs:[DISCOVERY_DOC]});gapiReady=true;res()})};
     document.head.appendChild(s);
   });
 }
+
 function loadGis(){
   return new Promise(res=>{
+    if(window.google?.accounts?.oauth2){initTokenClient();gisReady=true;res();return}
     const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
-    s.onload=()=>{
-      tokenClient=google.accounts.oauth2.initTokenClient({
-        client_id:CLIENT_ID,scope:SCOPES,
-        callback:resp=>{
-          if(resp.error) return;
-          driveConnected=true;render();
-        }
-      });
-      gisReady=true;res();
-    };
+    s.onload=()=>{initTokenClient();gisReady=true;res()};
     document.head.appendChild(s);
   });
 }
-function trySilentAuth(){
-  if(!gapiReady||!gisReady) return;
-  if(localStorage.getItem('sb-drive-connected')==='1'){
-    try{tokenClient.requestAccessToken({prompt:''})}catch(e){}
-  }
+
+function initTokenClient(){
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,
+    scope:SCOPES,
+    callback:async(resp)=>{
+      if(resp.error){console.error('Auth error:',resp);return}
+      driveConnected=true;
+      localStorage.setItem('sb-drive-connected','1');
+      render();
+      showToast('☁ Drive 연결 완료');
+      // Ensure project folder exists
+      if(STATE.driveFolderId){
+        try{
+          await gapi.client.drive.files.get({fileId:STATE.driveFolderId,fields:'id,trashed'});
+        }catch(e){
+          console.log('Project folder not accessible, will create on upload');
+        }
+      }
+    }
+  });
 }
 
-// ══════════════════
-//  Drive operations
-// ══════════════════
+function connectDrive(){
+  if(!gapiReady||!gisReady){showToast('Google API 로딩 중...');return}
+  tokenClient.requestAccessToken({prompt:'consent'});
+}
+
+function disconnectDrive(){
+  const token=gapi.client.getToken();
+  if(token){
+    google.accounts.oauth2.revoke(token.access_token);
+    gapi.client.setToken(null);
+  }
+  driveConnected=false;
+  localStorage.removeItem('sb-drive-connected');
+  render();
+  showToast('Drive 연결 해제');
+}
+
+// ── Drive operations ──
 async function findOrCreateFolder(name,parentId){
   if(!driveConnected||!parentId) return null;
-  // Search first
   try{
     const resp=await gapi.client.drive.files.list({
       q:`name='${name.replace(/'/g,"\\'")}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields:'files(id)',spaces:'drive'
     });
     if(resp.result.files&&resp.result.files.length>0) return resp.result.files[0].id;
-  }catch(e){}
-  // Create
+  }catch(e){console.warn('Search folder error:',e)}
   try{
     const resp=await gapi.client.drive.files.create({
       resource:{name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]},
@@ -299,16 +318,65 @@ async function findOrCreateFolder(name,parentId){
   }catch(e){console.error('Create folder error:',e);return null}
 }
 
+async function ensureProjectFolder(){
+  if(!driveConnected) return null;
+  if(STATE.driveFolderId){
+    try{
+      const resp=await gapi.client.drive.files.get({fileId:STATE.driveFolderId,fields:'id,trashed'});
+      if(!resp.result.trashed) return STATE.driveFolderId;
+    }catch(e){}
+  }
+  // Need to find or create root first
+  let rootId=localStorage.getItem('sb-root-folder-id');
+  if(rootId){
+    try{await gapi.client.drive.files.get({fileId:rootId,fields:'id,trashed'})}
+    catch(e){rootId=null}
+  }
+  if(!rootId){
+    try{
+      const resp=await gapi.client.drive.files.list({
+        q:`name='Storyboard_Projects' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+        fields:'files(id)',spaces:'drive'
+      });
+      if(resp.result.files&&resp.result.files.length>0) rootId=resp.result.files[0].id;
+    }catch(e){}
+  }
+  if(!rootId){
+    try{
+      const resp=await gapi.client.drive.files.create({
+        resource:{name:'Storyboard_Projects',mimeType:'application/vnd.google-apps.folder'},
+        fields:'id'
+      });
+      rootId=resp.result.id;
+    }catch(e){return null}
+  }
+  localStorage.setItem('sb-root-folder-id',rootId);
+
+  // Create project folder
+  const projName=(STATE.projectName||PROJECT_ID||'Untitled').replace(/[\/\\:*?"<>|]/g,'_');
+  const fId=await findOrCreateFolder(projName,rootId);
+  if(fId){
+    STATE.driveFolderId=fId;
+    // Update project meta
+    try{
+      const raw=localStorage.getItem('sb-projects');
+      if(raw){const ps=JSON.parse(raw);const p=ps.find(x=>x.id===PROJECT_ID);if(p){p.driveFolderId=fId;localStorage.setItem('sb-projects',JSON.stringify(ps))}}
+    }catch(e){}
+  }
+  return fId;
+}
+
 async function getSceneFolderId(sceneIdx){
-  if(!driveConnected||!STATE.driveFolderId) return null;
+  if(!driveConnected) return null;
+  const projFolder=await ensureProjectFolder();
+  if(!projFolder) return null;
+
   const sceneName='Scene_'+String(sceneIdx+1).padStart(2,'0');
   const sceneId=STATE.scenes[sceneIdx]?.id;
   if(!sceneId) return null;
-
-  // Cache check
   if(sceneFolderIds[sceneId]) return sceneFolderIds[sceneId];
 
-  const fId=await findOrCreateFolder(sceneName,STATE.driveFolderId);
+  const fId=await findOrCreateFolder(sceneName,projFolder);
   if(fId) sceneFolderIds[sceneId]=fId;
   return fId;
 }
@@ -316,39 +384,31 @@ async function getSceneFolderId(sceneIdx){
 async function uploadImageToDrive(file,fileName,folderId){
   if(!driveConnected||!folderId) return null;
   try{
-    // Multipart upload
     const metadata={name:fileName,parents:[folderId]};
     const form=new FormData();
     form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
     form.append('file',file);
-
     const token=gapi.client.getToken().access_token;
-    const resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webContentLink',{
-      method:'POST',
-      headers:{Authorization:'Bearer '+token},
-      body:form
+    const resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+      method:'POST',headers:{Authorization:'Bearer '+token},body:form
     });
     const data=await resp.json();
     if(data.id){
-      // Make viewable by link
+      // Make publicly viewable
       try{
-        await gapi.client.drive.permissions.create({
-          fileId:data.id,
-          resource:{role:'reader',type:'anyone'}
-        });
-      }catch(e){}
+        await gapi.client.drive.permissions.create({fileId:data.id,resource:{role:'reader',type:'anyone'}});
+      }catch(e){console.warn('Permission set error:',e)}
       return data.id;
     }
+    console.error('Upload response error:',data);
   }catch(e){console.error('Upload error:',e)}
   return null;
 }
 
-function driveImgUrl(fileId){
-  return fileId?'https://lh3.googleusercontent.com/d/'+fileId:'';
-}
+function driveImgUrl(fileId){return fileId?'https://lh3.googleusercontent.com/d/'+fileId:''}
 
 // ══════════════════
-//  IndexedDB (images)
+//  IndexedDB
 // ══════════════════
 const DB_NAME='sb-images-db',DB_STORE='images';let _db=null;
 function openDB(){return new Promise((res,rej)=>{if(_db) return res(_db);const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{e.target.result.createObjectStore(DB_STORE)};r.onsuccess=e=>{_db=e.target.result;res(_db)};r.onerror=e=>rej(e)})}
@@ -375,23 +435,15 @@ async function saveData(){
     if(cut.imgData) entries.push({key:imgPrefix+cut.id,value:cut.imgData});
   }));
   if(entries.length) await idbPutBatch(entries);
-  // Update project meta
   if(PROJECT_ID){
-    try{
-      const raw=localStorage.getItem('sb-projects');
-      if(raw){const ps=JSON.parse(raw);const p=ps.find(x=>x.id===PROJECT_ID);
-        if(p){p.updatedAt=new Date().toISOString().slice(0,10);p.cutCount=STATE.scenes.reduce((s,sc)=>s+sc.cuts.length,0);localStorage.setItem('sb-projects',JSON.stringify(ps))}
-      }
-    }catch(e){}
+    try{const raw=localStorage.getItem('sb-projects');if(raw){const ps=JSON.parse(raw);const p=ps.find(x=>x.id===PROJECT_ID);if(p){p.updatedAt=new Date().toISOString().slice(0,10);p.cutCount=STATE.scenes.reduce((s,sc)=>s+sc.cuts.length,0);localStorage.setItem('sb-projects',JSON.stringify(ps))}}}catch(e){}
   }
 }
 function saveDataDebounced(){clearTimeout(_saveQ);_saveQ=setTimeout(()=>saveData(),300)}
 
 async function loadData(){
   if(PROJECT_ID){
-    try{const raw=localStorage.getItem('sb-projects');if(raw){const ps=JSON.parse(raw);const p=ps.find(x=>x.id===PROJECT_ID);
-      if(p){STATE.projectName=p.name||'';STATE.projectColor=p.color||'';STATE.driveFolderId=p.driveFolderId||''}
-    }}catch(e){}
+    try{const raw=localStorage.getItem('sb-projects');if(raw){const ps=JSON.parse(raw);const p=ps.find(x=>x.id===PROJECT_ID);if(p){STATE.projectName=p.name||'';STATE.projectColor=p.color||'';STATE.driveFolderId=p.driveFolderId||''}}}catch(e){}
   }
   try{
     const raw=localStorage.getItem(storageKey);
@@ -407,7 +459,6 @@ async function loadData(){
   try{const me=[];for(const sc of STATE.scenes){for(const cut of sc.cuts){if(!cut.imgData){const old=localStorage.getItem('sb-img-'+cut.id);if(old){cut.imgData=old;me.push({key:imgPrefix+cut.id,value:old});localStorage.removeItem('sb-img-'+cut.id)}}}}if(me.length) await idbPutBatch(me)}catch(e){}
 }
 
-// ── Image helpers ──
 function convertDriveUrl(url){if(!url) return '';const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];return url}
 function imgSrc(f){if(!f) return '';if(f.startsWith('http')||f.startsWith('data:')||f.startsWith('/')||f.startsWith('.')) return f;return STATE.baseFolder.replace(/\/+$/,'')+'/'+f}
 function resolveImg(cut){if(cut.driveFileId) return driveImgUrl(cut.driveFileId);if(cut.driveUrl) return convertDriveUrl(cut.driveUrl);if(cut.imgData) return cut.imgData;if(cut.img) return imgSrc(cut.img);return ''}
@@ -420,7 +471,7 @@ function render(){
   const app=document.getElementById('app');app.innerHTML='';
   if(STATE.loading) app.appendChild(el('div',{className:'loading-bar'}));
   app.appendChild(renderHeader());app.appendChild(renderConfigBar());
-  if(STATE.scenes.length===0){app.appendChild(renderEmpty())}
+  if(STATE.scenes.length===0) app.appendChild(renderEmpty());
   else{const board=el('div',{className:'board'});STATE.scenes.forEach((sc,si)=>board.appendChild(renderScene(sc,si)));app.appendChild(board)}
   if(STATE.editCut) app.appendChild(renderEditModal());
   if(STATE.previewImg) app.appendChild(renderPreview());
@@ -447,14 +498,17 @@ function renderHeader(){
   const tc=STATE.scenes.reduce((s,sc)=>s+sc.cuts.length,0);
   return el('header',{className:'header'},
     el('div',{className:'header-left'},
-      el('button',{className:'back-btn',onClick:()=>{window.location.href='index.html'}},svg(ICO.back,14),'프로젝트 목록'),
+      el('button',{className:'back-btn',onClick:()=>{window.location.href='index.html'}},svg(ICO.back,14),'목록'),
       el('div',{className:'logo'},'BOARD'),
       STATE.projectName?el('div',{className:'proj-name'},'— '+STATE.projectName):null,
-      el('span',{className:'stats'},`${STATE.scenes.length} scenes · ${tc} cuts`),
-      driveConnected&&STATE.driveFolderId?el('span',{className:'drive-badge'},'☁ Drive'):null
+      el('span',{className:'stats'},`${STATE.scenes.length}sc · ${tc}cuts`)
     ),
     el('div',{className:'header-right'},
-      el('button',{className:STATE.wrapMode?'btn btn-accent':'btn',onClick:()=>{STATE.wrapMode=!STATE.wrapMode;saveData();render()}},svg(STATE.wrapMode?'M4 6h16M4 12h16M4 18h16':'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',14),STATE.wrapMode?'스크롤':'한눈에'),
+      // Drive connect button — key addition
+      driveConnected
+        ? el('button',{className:'btn-drive connected',onClick:disconnectDrive},svg(ICO.cloud,12),'☁ 연결됨')
+        : el('button',{className:'btn-drive',onClick:connectDrive},svg(ICO.cloud,12),'Drive 연결'),
+      el('button',{className:STATE.wrapMode?'btn btn-accent':'btn',onClick:()=>{STATE.wrapMode=!STATE.wrapMode;saveData();render()}},STATE.wrapMode?'스크롤':'한눈에'),
       el('button',{className:'btn',onClick:exportJSON},svg(ICO.save,14),'내보내기'),
       el('button',{className:'btn',onClick:importJSON},svg(ICO.folder,14),'불러오기'),
       el('button',{className:'btn btn-accent',onClick:addScene},svg(ICO.plus,14),'새 씬')
@@ -464,9 +518,9 @@ function renderHeader(){
 
 function renderConfigBar(){
   return el('div',{className:'config-bar'},
-    el('label',null,'📁 이미지 폴더'),
+    el('label',null,'📁 폴더'),
     el('input',{type:'text',value:STATE.baseFolder,placeholder:'./images',onInput:e=>{STATE.baseFolder=e.target.value;saveDataDebounced()},onChange:()=>render()}),
-    el('span',{className:'hint'},driveConnected&&STATE.driveFolderId?'☁ Drive 자동 업로드 활성화 · 이미지 추가 시 드라이브에 자동 저장':'로컬 경로 기준 · Drive 미연결')
+    el('span',{className:'hint'},driveConnected?'☁ Drive 자동 업로드 활성화':'Drive 미연결 · 로컬 전용')
   );
 }
 
@@ -494,17 +548,13 @@ function renderScene(scene,si){
 
   const cutsWrap=el('div',{className:'cuts'+(STATE.wrapMode?' wrap-mode':'')});
   scene.cuts.forEach((cut,ci)=>cutsWrap.appendChild(renderCutCard(cut,ci,si,scene.id)));
-
   const dz=el('div',{style:{minWidth:'60px',minHeight:'160px',display:'flex',alignItems:'center',justifyContent:'center',border:'2px dashed var(--border)',borderRadius:'8px',color:'var(--muted)',fontSize:'24px',cursor:'pointer',flexShrink:'0'},onClick:()=>addCutToScene(scene.id)},'+');
   setupDropTarget(dz,scene.id,scene.cuts.length);
-  cutsWrap.appendChild(dz);
-  scEl.appendChild(cutsWrap);
-  return scEl;
+  cutsWrap.appendChild(dz);scEl.appendChild(cutsWrap);return scEl;
 }
 
-// ── Cut Card ──
 function renderCutCard(cut,ci,si,sceneId){
-  const card=el('div',{className:'cut'});card.setAttribute('draggable','true');card.dataset.sceneId=sceneId;card.dataset.cutIdx=ci;
+  const card=el('div',{className:'cut'});card.setAttribute('draggable','true');
   card.addEventListener('dragstart',e=>{STATE.drag={sceneId,cutIdx:ci};card.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')});
   card.addEventListener('dragend',()=>{card.classList.remove('dragging');document.querySelectorAll('.cut.drag-left,.cut.drag-right,.cut.drag-over').forEach(x=>x.classList.remove('drag-left','drag-right','drag-over'));STATE.drag=null});
   setupDropTarget(card,sceneId,ci);
@@ -530,7 +580,7 @@ function renderCutCard(cut,ci,si,sceneId){
     ));
   } else {
     thumb.style.cursor='pointer';
-    thumb.appendChild(el('div',{className:'placeholder'},svg(ICO.img,28),el('br'),'클릭 또는 이미지 드롭'));
+    thumb.appendChild(el('div',{className:'placeholder'},svg(ICO.img,28),el('br'),'클릭 또는 드롭'));
     thumb.addEventListener('click',e=>{e.stopPropagation();pickImageFile(sceneId,cut.id,si,ci)});
   }
   card.appendChild(thumb);
@@ -557,8 +607,7 @@ function renderCutCard(cut,ci,si,sceneId){
     }
   }
   footer.appendChild(el('button',{className:'btn-icon danger',onClick:e=>{e.stopPropagation();delCut(sceneId,ci)},title:'삭제'},svg(ICO.trash,13)));
-  card.appendChild(footer);
-  return card;
+  card.appendChild(footer);return card;
 }
 
 function setupDropTarget(elem,sceneId,cutIdx){
@@ -573,7 +622,6 @@ function renderEditModal(){
   const ov=el('div',{className:'overlay',onClick:()=>saveEditAndClose()});
   const modal=el('div',{className:'modal',onClick:e=>e.stopPropagation()});
   modal.appendChild(el('div',{className:'modal-header'},el('h2',null,'컷 편집'),el('button',{className:'btn-icon',onClick:saveEditAndClose},svg(ICO.x,18))));
-
   const body=el('div',{className:'modal-body'});
   const src=cut.driveFileId?driveImgUrl(cut.driveFileId):(cut.driveUrl?convertDriveUrl(cut.driveUrl):(cut.imgData||imgSrc(cut.img)));
   const imgWrap=el('div',{className:'modal-img-wrap'});
@@ -582,7 +630,7 @@ function renderEditModal(){
   imgWrap.addEventListener('drop',e=>{imgWrap.style.outline='none';const file=[...e.dataTransfer.files].find(f=>f.type.startsWith('image/'));if(file){e.preventDefault();loadImageFileForEdit(file)}});
   imgWrap.addEventListener('click',()=>{const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=e=>{const f=e.target.files[0];if(f) loadImageFileForEdit(f)};inp.click()});
   if(src) imgWrap.appendChild(el('img',{src,alt:''}));
-  else imgWrap.appendChild(el('div',{className:'modal-img-empty'},svg(ICO.img,36),'클릭하여 이미지 선택 또는 드래그 앤 드롭'));
+  else imgWrap.appendChild(el('div',{className:'modal-img-empty'},svg(ICO.img,36),'클릭 또는 드래그 앤 드롭'));
   body.appendChild(imgWrap);
 
   const grid=el('div',{className:'form-grid'});
@@ -595,8 +643,7 @@ function renderEditModal(){
   grid.appendChild(formFieldArea('액션','action',cut.action,'상황 묘사...',3));
   grid.appendChild(formFieldArea('대사','dialogue',cut.dialogue,'대사...',2));
   grid.appendChild(formFieldArea('노트','note',cut.note,'메모...',2));
-  body.appendChild(grid);
-  modal.appendChild(body);
+  body.appendChild(grid);modal.appendChild(body);
 
   modal.appendChild(el('div',{className:'modal-footer'},
     el('button',{className:'btn-icon danger',onClick:()=>{const sc=STATE.scenes.find(s=>s.id===STATE.editSceneId);if(sc){sc.cuts=sc.cuts.filter(c=>c.id!==cut.id);saveData()}STATE.editCut=null;STATE.editSceneId=null;render()}},svg(ICO.trash,14),' 삭제'),
@@ -607,93 +654,64 @@ function renderEditModal(){
 
 function formField(label,key,val,ph,cls){return el('label',{className:'form-label'+(cls?' '+cls:'')},el('span',null,label),(()=>{const inp=el('input',{type:'text',value:val||'',placeholder:ph||''});inp.addEventListener('input',e=>{STATE.editCut[key]=e.target.value});return inp})())}
 function formFieldArea(label,key,val,ph,rows){return el('label',{className:'form-label form-full'},el('span',null,label),(()=>{const ta=el('textarea',{rows:rows||2,placeholder:ph||''});ta.value=val||'';ta.addEventListener('input',e=>{STATE.editCut[key]=e.target.value});return ta})())}
-
-async function saveEditAndClose(){
-  if(STATE.editCut&&STATE.editSceneId){const sc=STATE.scenes.find(s=>s.id===STATE.editSceneId);if(sc) sc.cuts=sc.cuts.map(c=>c.id===STATE.editCut.id?{...STATE.editCut}:c);await saveData()}
-  STATE.editCut=null;STATE.editSceneId=null;render();
-}
+async function saveEditAndClose(){if(STATE.editCut&&STATE.editSceneId){const sc=STATE.scenes.find(s=>s.id===STATE.editSceneId);if(sc) sc.cuts=sc.cuts.map(c=>c.id===STATE.editCut.id?{...STATE.editCut}:c);await saveData()}STATE.editCut=null;STATE.editSceneId=null;render()}
 
 function renderPreview(){const ov=el('div',{className:'preview-overlay',onClick:()=>{STATE.previewImg=null;render()}});ov.appendChild(el('img',{src:STATE.previewImg,alt:''}));return ov}
 function renderToast(){return el('div',{className:'toast'},STATE.toast)}
 function showToast(msg){STATE.toast=msg;render();setTimeout(()=>{STATE.toast=null;render()},2500)}
-function renderEmpty(){return el('div',{className:'empty'},el('p',null,'씬이 없습니다. 새 씬을 추가하세요.'),el('button',{className:'btn btn-accent',onClick:addScene},svg(ICO.plus,14),'첫 번째 씬 추가'))}
+function renderEmpty(){return el('div',{className:'empty'},el('p',null,'씬이 없습니다.'),el('button',{className:'btn btn-accent',onClick:addScene},svg(ICO.plus,14),'첫 번째 씬 추가'))}
 
 // ══════════════════
 //  IMAGE + DRIVE
 // ══════════════════
 function pickImageFile(sceneId,cutId,si,ci){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const f=e.target.files[0];if(f) handleImageAdd(f,sceneId,cutId,si,ci)};
-  inp.click();
+  inp.onchange=e=>{const f=e.target.files[0];if(f) handleImageAdd(f,sceneId,cutId,si,ci)};inp.click();
 }
 
 async function handleImageAdd(file,sceneId,cutId,si,ci){
   const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;
   const cut=sc.cuts.find(c=>c.id===cutId);if(!cut) return;
-
-  // Read as base64 for immediate display
   const base64=await readFileAsDataURL(file);
   cut.imgData=base64;cut.img=file.name;
-  render(); // Show immediately
+  render();
 
-  // Upload to Drive if connected
-  if(driveConnected&&STATE.driveFolderId){
+  if(driveConnected){
     STATE.loading=true;render();
-    const sceneFolderId=await getSceneFolderId(si);
-    if(sceneFolderId){
-      const fileName=cutLabel(si,ci)+'_'+file.name;
-      const driveFileId=await uploadImageToDrive(file,fileName,sceneFolderId);
-      if(driveFileId){
-        cut.driveFileId=driveFileId;
-        showToast('☁ Drive 업로드 완료: '+fileName);
+    try{
+      const sceneFolderId=await getSceneFolderId(si);
+      if(sceneFolderId){
+        const fileName=cutLabel(si,ci)+'_'+file.name;
+        const driveFileId=await uploadImageToDrive(file,fileName,sceneFolderId);
+        if(driveFileId){
+          cut.driveFileId=driveFileId;
+          showToast('☁ '+fileName+' 업로드 완료');
+        } else {
+          showToast('Drive 업로드 실패 — 로컬에 저장됨');
+        }
       }
-    }
+    }catch(e){console.error('handleImageAdd drive error:',e)}
     STATE.loading=false;
   }
-
   await saveData();render();
 }
 
-function readFileAsDataURL(file){
-  return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(file)});
-}
-
-function clearImage(sceneId,cutId){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;
-  const cut=sc.cuts.find(c=>c.id===cutId);if(!cut) return;
-  cut.imgData=null;cut.img='';cut.driveUrl='';cut.driveFileId='';
-  idbDelete(imgPrefix+cutId);saveData();render();
-}
-
-async function loadImageFileForEdit(file){
-  STATE.editCut.imgData=await readFileAsDataURL(file);STATE.editCut.img=file.name;
-  await idbPut(imgPrefix+STATE.editCut.id,STATE.editCut.imgData);render();
-}
+function readFileAsDataURL(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(file)})}
+function clearImage(sceneId,cutId){const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;const cut=sc.cuts.find(c=>c.id===cutId);if(!cut) return;cut.imgData=null;cut.img='';cut.driveUrl='';cut.driveFileId='';idbDelete(imgPrefix+cutId);saveData();render()}
+async function loadImageFileForEdit(file){STATE.editCut.imgData=await readFileAsDataURL(file);STATE.editCut.img=file.name;await idbPut(imgPrefix+STATE.editCut.id,STATE.editCut.imgData);render()}
 
 // ══════════════════
 //  ACTIONS
 // ══════════════════
 function addScene(){STATE.scenes.push({id:uid(),title:'',cuts:[]});saveData();render()}
-function addCutToScene(sceneId){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;
-  const cut={id:uid(),img:'',driveUrl:'',driveFileId:'',angle:'',movement:'',action:'',dialogue:'',note:'',duration:'',type:''};
-  sc.cuts.push(cut);STATE.editCut={...cut};STATE.editSceneId=sceneId;saveData();render();
-}
+function addCutToScene(sceneId){const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;const cut={id:uid(),img:'',driveUrl:'',driveFileId:'',angle:'',movement:'',action:'',dialogue:'',note:'',duration:'',type:''};sc.cuts.push(cut);STATE.editCut={...cut};STATE.editSceneId=sceneId;saveData();render()}
 function openEdit(sceneId,cut){STATE.editCut={...cut};STATE.editSceneId=sceneId;render()}
 async function dupCut(sceneId,ci){const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;const dup={...sc.cuts[ci],id:uid()};sc.cuts.splice(ci+1,0,dup);render();if(dup.imgData) await idbPut(imgPrefix+dup.id,dup.imgData);await saveData()}
 async function delCut(sceneId,ci){const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc) return;const cutId=sc.cuts[ci]?.id;sc.cuts.splice(ci,1);if(cutId) idbDelete(imgPrefix+cutId);await saveData();render()}
 async function moveCutToScene(fromSceneId,cutIdx,toSceneId){const from=STATE.scenes.find(s=>s.id===fromSceneId);const to=STATE.scenes.find(s=>s.id===toSceneId);if(!from||!to) return;const [cut]=from.cuts.splice(cutIdx,1);to.cuts.push(cut);STATE.movePopup=null;render();await saveData();showToast('컷 이동 완료')}
 
-function exportJSON(){
-  const data=JSON.stringify({baseFolder:STATE.baseFolder,scenes:STATE.scenes},null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(STATE.projectName||'storyboard')+'.json';a.click();showToast('내보내기 완료');
-}
-function importJSON(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
-  inp.onchange=e=>{const f=e.target.files[0];if(!f) return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.baseFolder) STATE.baseFolder=d.baseFolder;if(d.scenes) STATE.scenes=d.scenes;saveData();render();showToast('불러오기 완료')}catch(err){alert('에러: '+err.message)}};r.readAsText(f)};
-  inp.click();
-}
+function exportJSON(){const data=JSON.stringify({baseFolder:STATE.baseFolder,scenes:STATE.scenes},null,2);const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(STATE.projectName||'storyboard')+'.json';a.click();showToast('내보내기 완료')}
+function importJSON(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const f=e.target.files[0];if(!f) return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.baseFolder) STATE.baseFolder=d.baseFolder;if(d.scenes) STATE.scenes=d.scenes;saveData();render();showToast('불러오기 완료')}catch(err){alert('에러: '+err.message)}};r.readAsText(f)};inp.click()}
 
 document.addEventListener('dragover',e=>e.preventDefault());
 document.addEventListener('drop',e=>e.preventDefault());
@@ -703,7 +721,7 @@ window.addEventListener('beforeunload',()=>{clearTimeout(_saveQ);try{const strip
 (async()=>{
   render();await loadData();render();
   await Promise.all([loadGapi(),loadGis()]);
-  if(localStorage.getItem('sb-drive-connected')==='1') trySilentAuth();
+  render();
 })();
 </script>
 </body>
