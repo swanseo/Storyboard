@@ -18,28 +18,30 @@
 body{background:var(--bg);color:var(--tx);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
 button{cursor:pointer;border:none;background:none;color:var(--tx);font-family:var(--sans);}
 
-/* HEADER */
 .header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--s);border-bottom:1px solid var(--b);position:sticky;top:0;z-index:100;}
 .header .back{padding:6px 12px;border-radius:var(--r);background:var(--s2);font-size:13px;display:flex;align-items:center;gap:4px;}
 .header .back:hover{background:var(--b);}
 .header .title{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:2px;}
 .header .proj-info{font-size:12px;color:var(--m);font-family:var(--mono);}
-.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.btn-head{padding:6px 14px;border-radius:var(--r);background:var(--s2);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;border:1px solid var(--b);}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.btn-head{padding:6px 14px;border-radius:var(--r);background:var(--s2);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;border:1px solid var(--b);white-space:nowrap;}
 .btn-head:hover{background:var(--b);}
 .btn-head.drive{border-color:var(--acc2);color:var(--acc2);}
 .btn-head.drive.connected{background:rgba(77,200,240,0.15);border-color:var(--acc2);color:var(--acc2);}
 .btn-head.accent{background:var(--acc);color:#000;border-color:var(--acc);}
 .btn-head.accent:hover{background:#d4f75a;}
+.btn-head.pdf{background:#e74c3c;color:#fff;border-color:#e74c3c;}
+.btn-head.pdf:hover{filter:brightness(1.15);}
+.btn-head.viewer{background:rgba(77,200,240,0.1);color:var(--acc2);border-color:rgba(77,200,240,0.3);}
+.btn-head.viewer:hover{background:rgba(77,200,240,0.2);}
+.btn-head.sync{border-color:rgba(200,240,77,0.3);color:var(--acc);}
 
-/* STATUS BAR */
 .status-bar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--s);border-bottom:1px solid var(--b);font-size:12px;color:var(--m);}
 .status-bar .path{font-family:var(--mono);color:var(--m);}
 .status-bar .drive-status{margin-left:auto;font-family:var(--mono);font-size:11px;}
 .drive-status.on{color:var(--acc2);}
 .drive-status.off{color:var(--m2);}
 
-/* SCENE */
 .scene{margin:16px 12px;border:1px solid var(--b);border-radius:var(--r);background:var(--s);overflow:hidden;}
 .scene-head{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--b);cursor:grab;}
 .scene-head .scene-num{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--acc);letter-spacing:1px;}
@@ -49,10 +51,8 @@ button{cursor:pointer;border:none;background:none;color:var(--tx);font-family:va
 .scene-head .scene-actions button{padding:4px 10px;border-radius:6px;font-size:12px;background:var(--b);color:var(--m);}
 .scene-head .scene-actions button:hover{color:var(--tx);background:var(--s2);}
 
-/* CUTS CONTAINER */
 .cuts{display:flex;flex-wrap:wrap;gap:10px;padding:14px;min-height:80px;}
 
-/* CUT CARD */
 .cut-card{width:190px;background:var(--s2);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;position:relative;transition:border-color .2s;}
 .cut-card:hover{border-color:var(--m);}
 .cut-card.dragging{opacity:0.4;}
@@ -64,21 +64,19 @@ button{cursor:pointer;border:none;background:none;color:var(--tx);font-family:va
 .cut-thumb .placeholder{color:var(--m2);font-size:28px;}
 .cut-thumb .upload-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:var(--acc2);font-size:12px;opacity:0;transition:opacity .2s;}
 .cut-thumb:hover .upload-overlay{opacity:1;}
-.cut-thumb .img-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;color:var(--danger);font-size:14px;}
+.cut-thumb .img-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;color:var(--danger);font-size:14px;cursor:pointer;}
 .cut-thumb:hover .img-del{opacity:1;}
 .cut-actions{display:flex;align-items:center;justify-content:center;gap:2px;padding:4px 6px;border-top:1px solid var(--b);}
 .cut-actions button{padding:4px 6px;border-radius:4px;font-size:12px;color:var(--m);}
 .cut-actions button:hover{color:var(--tx);background:var(--b);}
 .cut-actions .del-btn:hover{color:var(--danger);}
 
-/* ADD CUT */
 .add-cut{width:190px;min-height:170px;border:2px dashed var(--b);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s;}
 .add-cut:hover{border-color:var(--acc);}
 .add-cut span{color:var(--m);font-size:32px;}
 
-/* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;}
-.modal{background:var(--s);border:1px solid var(--b);border-radius:12px;width:560px;max-height:85vh;overflow-y:auto;padding:24px;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items;center;justify-content:center;}
+.modal{background:var(--s);border:1px solid var(--b);border-radius:12px;width:560px;max-height:85vh;overflow-y:auto;padding:24px;margin:auto;}
 .modal h3{font-family:var(--mono);font-size:14px;margin-bottom:16px;letter-spacing:1px;}
 .modal label{display:block;font-size:11px;color:var(--m);margin-bottom:4px;margin-top:12px;font-family:var(--mono);}
 .modal input,.modal textarea,.modal select{width:100%;padding:8px 10px;background:var(--s2);border:1px solid var(--b);border-radius:6px;color:var(--tx);font-size:13px;font-family:var(--sans);outline:none;}
@@ -94,21 +92,17 @@ button{cursor:pointer;border:none;background:none;color:var(--tx);font-family:va
 .modal-footer .delete:hover{background:rgba(255,68,85,0.15);}
 .modal .thumb-preview{width:100%;max-height:200px;object-fit:contain;border-radius:6px;margin-top:8px;background:var(--s2);}
 
-/* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--s2);border:1px solid var(--b);padding:10px 24px;border-radius:var(--r);font-size:13px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;}
 .toast.show{opacity:1;}
 .toast.error{border-color:var(--danger);color:var(--danger);}
 
-/* LOADING BAR */
 .loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--acc2);z-index:999;transition:width .3s;width:0;}
 
-/* SCROLL MODE */
 .cuts.scroll-mode{flex-wrap:nowrap;overflow-x:auto;padding-bottom:16px;}
 .cuts.scroll-mode::-webkit-scrollbar{height:6px;}
 .cuts.scroll-mode::-webkit-scrollbar-track{background:var(--s2);border-radius:3px;}
 .cuts.scroll-mode::-webkit-scrollbar-thumb{background:var(--b);border-radius:3px;}
 
-/* OVERVIEW MODAL */
 .overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:12px;}
 .overview-item{background:var(--s2);border-radius:6px;overflow:hidden;border:1px solid var(--b);}
 .overview-item img{width:100%;height:100px;object-fit:cover;}
@@ -141,130 +135,52 @@ let gisLoaded=false;
 let tokenClient=null;
 
 // ─── IndexedDB ───
-const DB_NAME='storyboardDB';
-const DB_VER=1;
-let db=null;
-function idbOpen(){
-  return new Promise((res,rej)=>{
-    const req=indexedDB.open(DB_NAME,DB_VER);
-    req.onupgradeneeded=e=>{e.target.result.createObjectStore('images');};
-    req.onsuccess=e=>{db=e.target.result;res(db);};
-    req.onerror=e=>rej(e);
-  });
-}
-function idbPut(key,val){
-  return new Promise((res,rej)=>{
-    const tx=db.transaction('images','readwrite');
-    tx.objectStore('images').put(val,key);
-    tx.oncomplete=()=>res();
-    tx.onerror=e=>rej(e);
-  });
-}
-function idbGet(key){
-  return new Promise((res,rej)=>{
-    const tx=db.transaction('images','readonly');
-    const req=tx.objectStore('images').get(key);
-    req.onsuccess=()=>res(req.result||null);
-    req.onerror=e=>rej(e);
-  });
-}
-function idbDelete(key){
-  return new Promise((res,rej)=>{
-    const tx=db.transaction('images','readwrite');
-    tx.objectStore('images').delete(key);
-    tx.oncomplete=()=>res();
-    tx.onerror=e=>rej(e);
-  });
-}
+const DB_NAME='storyboardDB';const DB_VER=1;let db=null;
+function idbOpen(){return new Promise((res,rej)=>{const req=indexedDB.open(DB_NAME,DB_VER);req.onupgradeneeded=e=>{e.target.result.createObjectStore('images')};req.onsuccess=e=>{db=e.target.result;res(db)};req.onerror=e=>rej(e)})}
+function idbPut(key,val){return new Promise((res,rej)=>{const tx=db.transaction('images','readwrite');tx.objectStore('images').put(val,key);tx.oncomplete=()=>res();tx.onerror=e=>rej(e)})}
+function idbGet(key){return new Promise((res,rej)=>{const tx=db.transaction('images','readonly');const req=tx.objectStore('images').get(key);req.onsuccess=()=>res(req.result||null);req.onerror=e=>rej(e)})}
+function idbDelete(key){return new Promise((res,rej)=>{const tx=db.transaction('images','readwrite');tx.objectStore('images').delete(key);tx.oncomplete=()=>res();tx.onerror=e=>rej(e)})}
 
 // ─── DATA ───
 function loadProject(){
   const proj=JSON.parse(localStorage.getItem('sb-projects')||'[]').find(p=>p.id===projectId);
   if(proj){
     STATE.projectName=proj.name||'';
-    STATE.projectDriveId=proj.driveId||'';
+    STATE.projectDriveId=proj.driveFolderId||proj.driveId||'';
     STATE.projectColor=proj.color||'#c8f04d';
   }
   const raw=localStorage.getItem(storageKey);
-  if(raw){
-    try{
-      const d=JSON.parse(raw);
-      STATE.scenes=d.scenes||[];
-      STATE.viewMode=d.viewMode||'wrap';
-    }catch(e){STATE.scenes=[];}
-  }
-  if(!STATE.scenes.length){
-    STATE.scenes=[{id:genId(),title:'',cuts:[]}];
-  }
+  if(raw){try{const d=JSON.parse(raw);STATE.scenes=d.scenes||[];STATE.viewMode=d.viewMode||'wrap';}catch(e){STATE.scenes=[];}}
+  if(!STATE.scenes.length) STATE.scenes=[{id:genId(),title:'',cuts:[]}];
 }
 async function saveData(){
   const d={scenes:STATE.scenes,viewMode:STATE.viewMode};
   try{localStorage.setItem(storageKey,JSON.stringify(d));}catch(e){console.warn('Storage save error:',e);}
-  // update project meta
   try{
     const projs=JSON.parse(localStorage.getItem('sb-projects')||'[]');
     const p=projs.find(x=>x.id===projectId);
     if(p){
-      let totalCuts=0;
-      STATE.scenes.forEach(s=>totalCuts+=s.cuts.length);
+      let totalCuts=0;STATE.scenes.forEach(s=>totalCuts+=s.cuts.length);
       p.cutCount=totalCuts;
       p.updatedAt=new Date().toISOString().slice(0,10);
       p.driveId=STATE.projectDriveId;
-      // find first thumb
-      for(const sc of STATE.scenes){
-        for(const c of sc.cuts){
-          if(c.driveUrl){p.thumbnail=c.driveUrl;break;}
-          const loc=await idbGet(imgPrefix+c.id);
-          if(loc){p.thumbnail='local';break;}
-        }
-        if(p.thumbnail)break;
-      }
+      p.driveFolderId=STATE.projectDriveId;
+      p.thumbnail='';
+      for(const sc of STATE.scenes){for(const c of sc.cuts){if(c.driveUrl){p.thumbnail=c.driveUrl;break;}};if(p.thumbnail)break;}
       localStorage.setItem('sb-projects',JSON.stringify(projs));
     }
   }catch(e){}
 }
-
-function genId(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function genId(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 
 // ─── GOOGLE DRIVE ───
-function loadGapi(){
-  const s=document.createElement('script');
-  s.src='https://apis.google.com/js/api.js';
-  s.onload=()=>{
-    gapi.load('client',async()=>{
-      await gapi.client.init({discoveryDocs:[DISCOVERY_DOC]});
-      gapiLoaded=true;
-      tryAutoReconnect();
-    });
-  };
-  document.body.appendChild(s);
-}
-function loadGis(){
-  const s=document.createElement('script');
-  s.src='https://accounts.google.com/gsi/client';
-  s.onload=()=>{
-    tokenClient=google.accounts.oauth2.initTokenClient({
-      client_id:CLIENT_ID,
-      scope:SCOPES,
-      callback:handleTokenResponse,
-    });
-    gisLoaded=true;
-    tryAutoReconnect();
-  };
-  document.body.appendChild(s);
-}
+function loadGapi(){const s=document.createElement('script');s.src='https://apis.google.com/js/api.js';s.onload=()=>{gapi.load('client',async()=>{await gapi.client.init({discoveryDocs:[DISCOVERY_DOC]});gapiLoaded=true;tryAutoReconnect()})};document.body.appendChild(s)}
+function loadGis(){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=()=>{tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:SCOPES,callback:handleTokenResponse});gisLoaded=true;tryAutoReconnect()};document.body.appendChild(s)}
+
 function handleTokenResponse(resp){
-  if(resp.error){
-    console.error('Token error:',resp);
-    showToast('Drive 인증 실패','error');
-    return;
-  }
-  // Save token for auto-reconnect
-  const tokenData={
-    access_token:resp.access_token,
-    expires_at:Date.now()+(resp.expires_in*1000),
-  };
-  localStorage.setItem('sb-drive-token',JSON.stringify(tokenData));
+  if(resp.error){console.error('Token error:',resp);showToast('Drive 인증 실패','error');return}
+  const td={access_token:resp.access_token,expires_at:Date.now()+(resp.expires_in*1000)};
+  localStorage.setItem('sb-drive-token',JSON.stringify(td));
   driveConnected=true;
   showToast('☁ Drive 연결 완료');
   ensureRootFolder().then(()=>render());
@@ -274,85 +190,74 @@ function tryAutoReconnect(){
   const saved=localStorage.getItem('sb-drive-token');
   if(!saved)return;
   try{
-    const tokenData=JSON.parse(saved);
-    if(tokenData.expires_at>Date.now()+60000){
-      // Token still valid
-      gapi.client.setToken({access_token:tokenData.access_token});
-      driveConnected=true;
-      ensureRootFolder().then(()=>render());
-    }else{
-      // Token expired, try silent refresh
-      localStorage.removeItem('sb-drive-token');
-      // Attempt silent prompt
-      tokenClient.requestAccessToken({prompt:''});
-    }
-  }catch(e){
-    localStorage.removeItem('sb-drive-token');
-  }
+    const td=JSON.parse(saved);
+    if(td.expires_at>Date.now()+60000){gapi.client.setToken({access_token:td.access_token});driveConnected=true;ensureRootFolder().then(()=>render())}
+    else{localStorage.removeItem('sb-drive-token');tokenClient.requestAccessToken({prompt:''})}
+  }catch(e){localStorage.removeItem('sb-drive-token')}
 }
-function connectDrive(){
-  if(!gapiLoaded||!gisLoaded){showToast('API 로딩 중...','error');return;}
-  tokenClient.requestAccessToken({prompt:'consent'});
-}
-function disconnectDrive(){
-  const token=gapi.client.getToken();
-  if(token){google.accounts.oauth2.revoke(token.access_token);}
-  gapi.client.setToken(null);
-  localStorage.removeItem('sb-drive-token');
-  driveConnected=false;
-  rootFolderId='';
-  showToast('Drive 연결 해제');
-  render();
-}
+function connectDrive(){if(!gapiLoaded||!gisLoaded){showToast('API 로딩 중...','error');return}tokenClient.requestAccessToken({prompt:'consent'})}
+function disconnectDrive(){const token=gapi.client.getToken();if(token)google.accounts.oauth2.revoke(token.access_token);gapi.client.setToken(null);localStorage.removeItem('sb-drive-token');driveConnected=false;rootFolderId='';showToast('Drive 연결 해제');render()}
 
 async function ensureRootFolder(){
   try{
-    const res=await gapi.client.drive.files.list({
-      q:`name='${ROOT_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields:'files(id,name)',spaces:'drive'
-    });
-    if(res.result.files&&res.result.files.length>0){
-      rootFolderId=res.result.files[0].id;
-    }else{
-      const cr=await gapi.client.drive.files.create({
-        resource:{name:ROOT_FOLDER_NAME,mimeType:'application/vnd.google-apps.folder'},
-        fields:'id'
-      });
-      rootFolderId=cr.result.id;
-    }
-  }catch(e){console.error('Root folder error:',e);}
+    const res=await gapi.client.drive.files.list({q:`name='${ROOT_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,fields:'files(id,name)',spaces:'drive'});
+    if(res.result.files&&res.result.files.length>0){rootFolderId=res.result.files[0].id}
+    else{const cr=await gapi.client.drive.files.create({resource:{name:ROOT_FOLDER_NAME,mimeType:'application/vnd.google-apps.folder'},fields:'id'});rootFolderId=cr.result.id}
+  }catch(e){console.error('Root folder error:',e)}
 }
-
 async function findOrCreateFolder(name,parentId){
   try{
-    const res=await gapi.client.drive.files.list({
-      q:`name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields:'files(id,name)',spaces:'drive'
-    });
+    const res=await gapi.client.drive.files.list({q:`name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,fields:'files(id,name)',spaces:'drive'});
     if(res.result.files&&res.result.files.length>0)return res.result.files[0].id;
-    const cr=await gapi.client.drive.files.create({
-      resource:{name:name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]},
-      fields:'id'
-    });
+    const cr=await gapi.client.drive.files.create({resource:{name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]},fields:'id'});
     return cr.result.id;
-  }catch(e){console.error('Folder error:',e);return null;}
+  }catch(e){console.error('Folder error:',e);return null}
 }
-
 async function ensureProjectFolder(){
   if(!driveConnected||!rootFolderId)return null;
   const folderName=STATE.projectName||projectId;
   if(STATE.projectDriveId){
-    // verify it still exists
-    try{
-      await gapi.client.drive.files.get({fileId:STATE.projectDriveId,fields:'id'});
-      return STATE.projectDriveId;
-    }catch(e){STATE.projectDriveId='';}
+    try{await gapi.client.drive.files.get({fileId:STATE.projectDriveId,fields:'id'});return STATE.projectDriveId}catch(e){STATE.projectDriveId=''}
   }
   const id=await findOrCreateFolder(folderName,rootFolderId);
-  if(id){STATE.projectDriveId=id;await saveData();}
+  if(id){STATE.projectDriveId=id;await saveData()}
   return id;
 }
 
+// ─── DRIVE SYNC (cross-device) ───
+async function syncDriveImages(){
+  if(!driveConnected||!STATE.projectDriveId){showToast('Drive 프로젝트 폴더를 찾을 수 없습니다','error');return}
+  showLoading(20);
+  try{
+    const res=await gapi.client.drive.files.list({q:`'${STATE.projectDriveId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,fields:'files(id,name)',spaces:'drive',orderBy:'name'});
+    const folders=res.result.files||[];
+    showLoading(40);
+    let updated=0;
+    for(const sf of folders){
+      const imgs=await gapi.client.drive.files.list({q:`'${sf.id}' in parents and mimeType contains 'image/' and trashed=false`,fields:'files(id,name)',spaces:'drive',orderBy:'name'});
+      const files=imgs.result.files||[];
+      const m=sf.name.match(/Scene_(\d+)/i);
+      if(!m)continue;
+      const si=parseInt(m[1])-1;
+      if(si<0||si>=STATE.scenes.length)continue;
+      for(const f of files){
+        for(const cut of STATE.scenes[si].cuts){
+          if(!cut.driveUrl&&f.name.startsWith(cut.label)){
+            cut.driveFileId=f.id;
+            cut.driveUrl=`https://lh3.googleusercontent.com/d/${f.id}`;
+            updated++;
+          }
+        }
+      }
+    }
+    showLoading(100);
+    if(updated>0){await saveData();showToast(`☁ ${updated}개 이미지 동기화 완료`)}
+    else showToast('모든 이미지가 최신 상태입니다');
+  }catch(e){console.error('Sync error:',e);showToast('동기화 실패','error')}
+  setTimeout(()=>showLoading(0),500);
+}
+
+// ─── DRIVE UPLOAD / DELETE ───
 async function uploadImageToDrive(file,cut,sceneIdx){
   if(!driveConnected)return;
   showLoading(30);
@@ -371,15 +276,10 @@ async function uploadImageToDrive(file,cut,sceneIdx){
     form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
     form.append('file',file);
     const token=gapi.client.getToken().access_token;
-    const resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webContentLink',{
-      method:'POST',
-      headers:{Authorization:'Bearer '+token},
-      body:form
-    });
+    const resp=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webContentLink',{method:'POST',headers:{Authorization:'Bearer '+token},body:form});
     const data=await resp.json();
     showLoading(80);
     if(data.id){
-      // set sharing
       await gapi.client.drive.permissions.create({fileId:data.id,resource:{role:'reader',type:'anyone'}});
       cut.driveFileId=data.id;
       cut.driveUrl=`https://lh3.googleusercontent.com/d/${data.id}`;
@@ -387,163 +287,85 @@ async function uploadImageToDrive(file,cut,sceneIdx){
       showLoading(100);
       showToast('☁ Drive 업로드 완료');
     }
-  }catch(e){
-    console.error('Upload error:',e);
-    showToast('업로드 실패','error');
-  }
+  }catch(e){console.error('Upload error:',e);showToast('업로드 실패','error')}
   setTimeout(()=>showLoading(0),500);
 }
-
 async function deleteDriveFile(fileId){
   if(!driveConnected||!fileId)return;
-  try{
-    await gapi.client.drive.files.delete({fileId:fileId});
-    console.log('Drive file deleted:',fileId);
-  }catch(e){console.warn('Drive delete error:',e);}
+  try{await gapi.client.drive.files.delete({fileId});console.log('Drive file deleted:',fileId)}catch(e){console.warn('Drive delete error:',e)}
 }
 
 // ─── IMAGE HANDLING ───
-function readFileAsDataURL(file){
-  return new Promise((res,rej)=>{
-    const reader=new FileReader();
-    reader.onload=()=>res(reader.result);
-    reader.onerror=e=>rej(e);
-    reader.readAsDataURL(file);
-  });
-}
+function readFileAsDataURL(file){return new Promise((res,rej)=>{const reader=new FileReader();reader.onload=()=>res(reader.result);reader.onerror=e=>rej(e);reader.readAsDataURL(file)})}
 
 async function handleImageAdd(file,sceneId,cutId){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);
-  if(!sc)return;
-  const cut=sc.cuts.find(c=>c.id===cutId);
-  if(!cut)return;
+  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc)return;
+  const cut=sc.cuts.find(c=>c.id===cutId);if(!cut)return;
   try{
-    // read and store locally
     const dataUrl=await readFileAsDataURL(file);
     await idbPut(imgPrefix+cutId,dataUrl);
-    cut.imgData='idb';
-    cut.img=file.name||'image';
-    await saveData();
-    render();
-    // upload to Drive
-    if(driveConnected){
-      const sceneIdx=STATE.scenes.indexOf(sc);
-      await uploadImageToDrive(file,cut,sceneIdx);
-      render();
-    }
-  }catch(e){
-    console.error('Image add error:',e);
-    showToast('이미지 추가 실패','error');
-  }
+    cut.imgData='idb';cut.img=file.name||'image';
+    await saveData();render();
+    if(driveConnected){const sceneIdx=STATE.scenes.indexOf(sc);await uploadImageToDrive(file,cut,sceneIdx);render()}
+  }catch(e){console.error('Image add error:',e);showToast('이미지 추가 실패','error')}
 }
-
 async function clearImage(sceneId,cutId){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);
-  if(!sc)return;
-  const cut=sc.cuts.find(c=>c.id===cutId);
-  if(!cut)return;
+  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc)return;
+  const cut=sc.cuts.find(c=>c.id===cutId);if(!cut)return;
   if(cut.driveFileId)await deleteDriveFile(cut.driveFileId);
   cut.imgData=null;cut.img='';cut.driveUrl='';cut.driveFileId='';
   await idbDelete(imgPrefix+cutId);
-  await saveData();
-  render();
-  showToast('이미지 삭제 완료');
+  await saveData();render();showToast('이미지 삭제 완료');
 }
 
 // ─── UI HELPERS ───
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='toast show'+(type?' '+type:'');
-  clearTimeout(t._t);
-  t._t=setTimeout(()=>t.className='toast',2500);
-}
-function showLoading(pct){
-  document.getElementById('loadingBar').style.width=pct+'%';
-}
-function el(tag,props,...ch){
-  const e=document.createElement(tag);
-  if(props)Object.keys(props).forEach(k=>{
-    if(k==='className')e.className=props[k];
-    else if(k==='style'&&typeof props[k]==='object')Object.assign(e.style,props[k]);
-    else if(k.startsWith('on'))e.addEventListener(k.slice(2).toLowerCase(),props[k]);
-    else if(k==='dataset')Object.assign(e.dataset,props[k]);
-    else e.setAttribute(k,props[k]);
-  });
-  ch.flat(9).forEach(c=>{
-    if(c==null)return;
-    if(typeof c==='string'||typeof c==='number')e.appendChild(document.createTextNode(c));
-    else e.appendChild(c);
-  });
-  return e;
-}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2500)}
+function showLoading(pct){document.getElementById('loadingBar').style.width=pct+'%'}
+function el(tag,props,...ch){const e=document.createElement(tag);if(props)Object.keys(props).forEach(k=>{if(k==='className')e.className=props[k];else if(k==='style'&&typeof props[k]==='object')Object.assign(e.style,props[k]);else if(k.startsWith('on'))e.addEventListener(k.slice(2).toLowerCase(),props[k]);else if(k==='dataset')Object.assign(e.dataset,props[k]);else e.setAttribute(k,props[k])});ch.flat(9).forEach(c=>{if(c==null)return;if(typeof c==='string'||typeof c==='number')e.appendChild(document.createTextNode(c));else e.appendChild(c)});return e}
 
 // ─── CUT OPERATIONS ───
-function addScene(){
-  STATE.scenes.push({id:genId(),title:'',cuts:[]});
-  saveData();render();
-}
+function addScene(){STATE.scenes.push({id:genId(),title:'',cuts:[]});saveData();render()}
 function deleteScene(sid){
   if(!confirm('이 씬을 삭제할까요?'))return;
   const sc=STATE.scenes.find(s=>s.id===sid);
-  if(sc)sc.cuts.forEach(c=>{
-    idbDelete(imgPrefix+c.id);
-    if(c.driveFileId)deleteDriveFile(c.driveFileId);
-  });
+  if(sc)sc.cuts.forEach(c=>{idbDelete(imgPrefix+c.id);if(c.driveFileId)deleteDriveFile(c.driveFileId)});
   STATE.scenes=STATE.scenes.filter(s=>s.id!==sid);
   if(!STATE.scenes.length)STATE.scenes=[{id:genId(),title:'',cuts:[]}];
   saveData();render();
 }
 function addCut(sceneId){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);
-  if(!sc)return;
+  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc)return;
   const scIdx=STATE.scenes.indexOf(sc)+1;
   const cutNum=sc.cuts.length+1;
   const label=`S${scIdx}-C${String(cutNum).padStart(2,'0')}`;
-  sc.cuts.push({id:genId(),label:label,img:'',imgData:null,driveUrl:'',driveFileId:'',angle:'',cameraMove:'',duration:'',action:'',dialogue:'',note:''});
+  sc.cuts.push({id:genId(),label,img:'',imgData:null,driveUrl:'',driveFileId:'',angle:'',cameraMove:'',duration:'',action:'',dialogue:'',note:''});
   saveData();render();
 }
 async function delCut(sceneId,cutIdx){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);
-  if(!sc)return;
-  const cut=sc.cuts[cutIdx];
-  if(!cut)return;
+  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc)return;
+  const cut=sc.cuts[cutIdx];if(!cut)return;
   if(cut.driveFileId)await deleteDriveFile(cut.driveFileId);
   await idbDelete(imgPrefix+cut.id);
   sc.cuts.splice(cutIdx,1);
-  // re-label
   const scIdx=STATE.scenes.indexOf(sc)+1;
-  sc.cuts.forEach((c,i)=>{c.label=`S${scIdx}-C${String(i+1).padStart(2,'0')}`;});
-  await saveData();
-  render();
-  showToast('컷 삭제 완료');
+  sc.cuts.forEach((c,i)=>{c.label=`S${scIdx}-C${String(i+1).padStart(2,'0')}`});
+  await saveData();render();showToast('컷 삭제 완료');
 }
 function dupCut(sceneId,cutIdx){
-  const sc=STATE.scenes.find(s=>s.id===sceneId);
-  if(!sc)return;
+  const sc=STATE.scenes.find(s=>s.id===sceneId);if(!sc)return;
   const orig=sc.cuts[cutIdx];
   const newCut={...orig,id:genId(),driveUrl:'',driveFileId:''};
   const scIdx=STATE.scenes.indexOf(sc)+1;
   sc.cuts.splice(cutIdx+1,0,newCut);
-  sc.cuts.forEach((c,i)=>{c.label=`S${scIdx}-C${String(i+1).padStart(2,'0')}`;});
-  // copy idb image
-  idbGet(imgPrefix+orig.id).then(data=>{
-    if(data)idbPut(imgPrefix+newCut.id,data);
-  });
-  saveData();render();
-  showToast('컷 복제 완료');
+  sc.cuts.forEach((c,i)=>{c.label=`S${scIdx}-C${String(i+1).padStart(2,'0')}`});
+  idbGet(imgPrefix+orig.id).then(data=>{if(data)idbPut(imgPrefix+newCut.id,data)});
+  saveData();render();showToast('컷 복제 완료');
 }
 
 // ─── EDIT MODAL ───
 let editState={open:false,sceneId:null,cutId:null};
-function openEdit(sceneId,cutId){
-  editState={open:true,sceneId,cutId};
-  render();
-}
-function closeEdit(){
-  editState={open:false,sceneId:null,cutId:null};
-  render();
-}
+function openEdit(sceneId,cutId){editState={open:true,sceneId,cutId};render()}
+function closeEdit(){editState={open:false,sceneId:null,cutId:null};render()}
 
 // ─── OVERVIEW ───
 let overviewOpen=false;
@@ -552,226 +374,191 @@ let overviewOpen=false;
 function exportJSON(){
   const d={projectId,projectName:STATE.projectName,scenes:STATE.scenes,exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=`${STATE.projectName||'storyboard'}_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  showToast('JSON 내보내기 완료');
+  a.click();showToast('JSON 내보내기 완료');
 }
 function importJSON(){
-  const input=document.createElement('input');
-  input.type='file';input.accept='.json';
-  input.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const d=JSON.parse(ev.target.result);
-        if(d.scenes){STATE.scenes=d.scenes;saveData();render();showToast('불러오기 완료');}
-      }catch(err){showToast('파일 오류','error');}
-    };
-    reader.readAsText(file);
-  };
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.scenes){STATE.scenes=d.scenes;saveData();render();showToast('불러오기 완료')}}catch(err){showToast('파일 오류','error')}};reader.readAsText(file)};
   input.click();
+}
+
+// ─── PDF EXPORT ───
+async function exportPDF(){
+  showToast('PDF 생성 중...');showLoading(10);
+  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:#fff;color:#111;padding:20px 28px;}
+h1{font-size:22px;margin-bottom:4px;}
+.sub{font-size:12px;color:#666;margin-bottom:28px;font-family:'JetBrains Mono',monospace;}
+.st{font:700 15px 'JetBrains Mono',monospace;color:#222;margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid #ddd;}
+.cut{display:flex;gap:16px;margin-bottom:16px;padding:14px;border:1px solid #e0e0e0;border-radius:8px;break-inside:avoid;page-break-inside:avoid;}
+.cut img{width:300px;height:169px;object-fit:cover;border-radius:6px;background:#f0f0f0;}
+.cut .ni{width:300px;height:169px;background:#f5f5f5;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px;font-family:'JetBrains Mono',monospace;}
+.ci{flex:1;}
+.cl{font:700 15px 'JetBrains Mono',monospace;color:#0055aa;margin-bottom:8px;}
+.bg{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
+.bg span{font:600 10px 'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px;background:#f0f4ff;border:1px solid #d0d8e8;color:#445;}
+.dt{font-size:12px;color:#333;line-height:2;}
+.dt strong{display:inline-block;min-width:70px;color:#111;font-family:'JetBrains Mono',monospace;font-size:10px;}
+.ft{text-align:center;margin-top:36px;font-size:10px;color:#aaa;font-family:'JetBrains Mono',monospace;border-top:1px solid #eee;padding-top:12px;}
+@media print{.cut{break-inside:avoid;page-break-inside:avoid;}}
+</style></head><body>`;
+  html+=`<h1>${STATE.projectName||'Storyboard'}</h1>`;
+  html+=`<div class="sub">${STATE.scenes.length} Scenes · ${STATE.scenes.reduce((a,s)=>a+s.cuts.length,0)} Cuts · Exported ${new Date().toISOString().slice(0,10)}</div>`;
+  showLoading(30);
+  for(let si=0;si<STATE.scenes.length;si++){
+    const scene=STATE.scenes[si];
+    html+=`<div class="st">SCENE ${si+1}${scene.title?' — '+scene.title:''}</div>`;
+    for(const cut of scene.cuts){
+      html+=`<div class="cut">`;
+      let src='';
+      if(cut.driveUrl)src=cut.driveUrl;
+      else{const loc=await idbGet(imgPrefix+cut.id);if(loc)src=loc}
+      if(src)html+=`<img src="${src}">`;else html+=`<div class="ni">No Image</div>`;
+      html+=`<div class="ci"><div class="cl">${cut.label}</div><div class="bg">`;
+      if(cut.angle)html+=`<span>📐 ${cut.angle}</span>`;
+      if(cut.cameraMove)html+=`<span>🎥 ${cut.cameraMove}</span>`;
+      if(cut.duration)html+=`<span>⏱ ${cut.duration}</span>`;
+      html+=`</div><div class="dt">`;
+      if(cut.action)html+=`<div><strong>ACTION</strong>${cut.action}</div>`;
+      if(cut.dialogue)html+=`<div><strong>DIALOGUE</strong>${cut.dialogue}</div>`;
+      if(cut.note)html+=`<div><strong>NOTE</strong>${cut.note}</div>`;
+      html+=`</div></div></div>`;
+    }
+  }
+  html+=`<div class="ft">Generated by Storyboard App · ${STATE.projectName} · ${new Date().toISOString().slice(0,10)}</div></body></html>`;
+  showLoading(70);
+  const win=window.open('','_blank','width=960,height=700');
+  win.document.write(html);win.document.close();
+  showLoading(100);
+  setTimeout(()=>{win.print();showLoading(0);showToast('PDF 준비 완료 — "PDF로 저장"을 선택하세요')},1200);
 }
 
 // ─── DRAG & DROP (CUT REORDER) ───
 let dragCut=null;
-function onCutDragStart(e,sceneId,cutIdx){
-  dragCut={sceneId,cutIdx};
-  e.currentTarget.classList.add('dragging');
-  e.dataTransfer.effectAllowed='move';
-  e.dataTransfer.setData('text/plain','cut');
-}
-function onCutDragEnd(e){
-  e.currentTarget.classList.remove('dragging');
-  dragCut=null;
-  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
-}
-function onCutDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
-function onCutDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function onCutDragStart(e,sceneId,cutIdx){dragCut={sceneId,cutIdx};e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','cut')}
+function onCutDragEnd(e){e.currentTarget.classList.remove('dragging');dragCut=null;document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'))}
+function onCutDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over')}
+function onCutDragLeave(e){e.currentTarget.classList.remove('drag-over')}
 function onCutDrop(e,targetSceneId,targetIdx){
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(!dragCut)return;
-  // check if this is a file drop (image), not a cut reorder
-  if(e.dataTransfer.files&&e.dataTransfer.files.length>0){
-    return; // handled by thumb drop
-  }
+  if(e.dataTransfer.files&&e.dataTransfer.files.length>0)return;
   const srcScene=STATE.scenes.find(s=>s.id===dragCut.sceneId);
   const tgtScene=STATE.scenes.find(s=>s.id===targetSceneId);
   if(!srcScene||!tgtScene)return;
   const [cut]=srcScene.cuts.splice(dragCut.cutIdx,1);
   tgtScene.cuts.splice(targetIdx,0,cut);
-  // re-label
-  STATE.scenes.forEach((sc,si)=>{sc.cuts.forEach((c,ci)=>{c.label=`S${si+1}-C${String(ci+1).padStart(2,'0')}`;});});
+  STATE.scenes.forEach((sc,si)=>{sc.cuts.forEach((c,ci)=>{c.label=`S${si+1}-C${String(ci+1).padStart(2,'0')}`})});
   saveData();render();
 }
 
 // ─── RENDER ───
 async function render(){
-  const app=document.getElementById('app');
-  app.innerHTML='';
+  const app=document.getElementById('app');app.innerHTML='';
+  const totalCuts=STATE.scenes.reduce((a,s)=>a+s.cuts.length,0);
 
   // Header
-  const driveBtn=el('button',{
-    className:'btn-head drive'+(driveConnected?' connected':''),
-    onClick:driveConnected?disconnectDrive:connectDrive
-  },driveConnected?'☁ 연결됨':'☁ 연결');
-  
+  const driveBtn=el('button',{className:'btn-head drive'+(driveConnected?' connected':''),onClick:driveConnected?disconnectDrive:connectDrive},driveConnected?'☁ 연결됨':'☁ 연결');
   const header=el('div',{className:'header'},
     el('button',{className:'back',onClick:()=>location.href='index.html'},'← 목록'),
     el('span',{className:'title'},'BOARD'),
-    el('span',{className:'proj-info'},`${STATE.scenes.length}sc · ${STATE.scenes.reduce((a,s)=>a+s.cuts.length,0)}cuts`),
+    el('span',{className:'proj-info'},`${STATE.scenes.length}sc · ${totalCuts}cuts`),
     el('div',{className:'header-right'},
       driveBtn,
-      el('button',{className:'btn-head',onClick:()=>{overviewOpen=true;render();}},'한눈에'),
+      el('button',{className:'btn-head',onClick:()=>{overviewOpen=true;render()}},'한눈에'),
       el('button',{className:'btn-head',onClick:exportJSON},'내보내기'),
       el('button',{className:'btn-head',onClick:importJSON},'불러오기'),
-      el('button',{className:'btn-head',onClick:()=>{STATE.viewMode=STATE.viewMode==='wrap'?'scroll':'wrap';saveData();render();}},STATE.viewMode==='wrap'?'스크롤':'감싸기'),
+      el('button',{className:'btn-head pdf',onClick:exportPDF},'PDF'),
+      el('button',{className:'btn-head sync',onClick:()=>{if(driveConnected)syncDriveImages().then(()=>render());else showToast('Drive를 먼저 연결하세요')}},'↻ 동기화'),
+      el('button',{className:'btn-head viewer',onClick:()=>location.href=`viewer.html?project=${projectId}`},'▶ 뷰어'),
+      el('button',{className:'btn-head',onClick:()=>{STATE.viewMode=STATE.viewMode==='wrap'?'scroll':'wrap';saveData();render()}},STATE.viewMode==='wrap'?'스크롤':'감싸기'),
       el('button',{className:'btn-head accent',onClick:addScene},'+ 새 씬')
     )
   );
   app.appendChild(header);
 
   // Status
-  const statusBar=el('div',{className:'status-bar'},
-    el('span',{className:'path'},'📁 '+STATE.projectName),
+  app.appendChild(el('div',{className:'status-bar'},
+    el('span',{className:'path'},'📁 '+(STATE.projectName||'프로젝트')),
     el('span',{className:'drive-status '+(driveConnected?'on':'off')},driveConnected?'☁ Drive 자동 업로드 활성화':'Drive 미연결 · 로컬 저장만')
-  );
-  app.appendChild(statusBar);
+  ));
 
   // Scenes
   for(let si=0;si<STATE.scenes.length;si++){
     const scene=STATE.scenes[si];
     const sceneEl=el('div',{className:'scene'});
-    
-    // Scene head
     const titleInput=el('input',{placeholder:'씬 제목 입력...',value:scene.title||''});
-    titleInput.addEventListener('change',e=>{scene.title=e.target.value;saveData();});
-    const sceneHead=el('div',{className:'scene-head'},
+    titleInput.addEventListener('change',e=>{scene.title=e.target.value;saveData()});
+    sceneEl.appendChild(el('div',{className:'scene-head'},
       el('span',{className:'scene-num'},`SCENE ${si+1}`),
       titleInput,
       el('div',{className:'scene-actions'},
         el('button',{onClick:()=>addCut(scene.id)},'+ 컷 추가'),
         el('button',{className:'del-btn',onClick:()=>deleteScene(scene.id)},'🗑')
       )
-    );
-    sceneEl.appendChild(sceneHead);
+    ));
 
-    // Cuts
     const cutsContainer=el('div',{className:'cuts'+(STATE.viewMode==='scroll'?' scroll-mode':'')});
-    
     for(let ci=0;ci<scene.cuts.length;ci++){
       const cut=scene.cuts[ci];
-      const card=el('div',{
-        className:'cut-card',
-        draggable:'true',
-        onDragstart:e=>onCutDragStart(e,scene.id,ci),
-        onDragend:onCutDragEnd,
-        onDragover:onCutDragOver,
-        onDragleave:onCutDragLeave,
-        onDrop:e=>onCutDrop(e,scene.id,ci)
+      const card=el('div',{className:'cut-card',draggable:'true',
+        onDragstart:e=>onCutDragStart(e,scene.id,ci),onDragend:onCutDragEnd,
+        onDragover:onCutDragOver,onDragleave:onCutDragLeave,onDrop:e=>onCutDrop(e,scene.id,ci)
       });
 
-      // Label
       const cloudIcon=cut.driveFileId?el('span',{className:'cloud'},'☁'):'';
       card.appendChild(el('div',{className:'cut-label'},el('span',null,cut.label),cloudIcon));
 
-      // Thumb
       const thumb=el('div',{className:'cut-thumb'});
-      
-      // Image display
       const imgEl=el('img',{style:{display:'none'}});
       const placeholder=el('span',{className:'placeholder'},'+');
-      thumb.appendChild(imgEl);
-      thumb.appendChild(placeholder);
-      
-      // Load image
-      (async(imgE,ph,c)=>{
-        if(c.driveUrl){
-          imgE.src=c.driveUrl;imgE.style.display='block';ph.style.display='none';
-        }else{
-          const local=await idbGet(imgPrefix+c.id);
-          if(local){imgE.src=local;imgE.style.display='block';ph.style.display='none';}
-        }
+      thumb.appendChild(imgEl);thumb.appendChild(placeholder);
+
+      (async(ie,ph,c)=>{
+        if(c.driveUrl){ie.src=c.driveUrl;ie.style.display='block';ph.style.display='none'}
+        else{const local=await idbGet(imgPrefix+c.id);if(local){ie.src=local;ie.style.display='block';ph.style.display='none'}}
       })(imgEl,placeholder,cut);
 
-      // Delete image btn
-      const delImgBtn=el('div',{className:'img-del',onClick:e=>{e.stopPropagation();clearImage(scene.id,cut.id);}},'×');
-      thumb.appendChild(delImgBtn);
+      thumb.appendChild(el('div',{className:'img-del',onClick:e=>{e.stopPropagation();clearImage(scene.id,cut.id)}},'×'));
+      thumb.appendChild(el('div',{className:'upload-overlay'},'클릭 또는 드래그'));
 
-      // Upload overlay
-      const overlay=el('div',{className:'upload-overlay'},'클릭 또는 드래그');
-      thumb.appendChild(overlay);
-
-      // Click to upload
       thumb.addEventListener('click',()=>{
-        const input=document.createElement('input');
-        input.type='file';input.accept='image/*';
-        input.onchange=e=>{
-          const f=e.target.files[0];
-          if(f)handleImageAdd(f,scene.id,cut.id);
-        };
-        input.click();
+        const input=document.createElement('input');input.type='file';input.accept='image/*';
+        input.onchange=e=>{const f=e.target.files[0];if(f)handleImageAdd(f,scene.id,cut.id)};input.click();
       });
-
-      // Drag & drop image onto thumb
-      thumb.addEventListener('dragover',e=>{
-        e.preventDefault();e.stopPropagation();
-        thumb.style.borderColor='var(--acc2)';
-      });
-      thumb.addEventListener('dragleave',e=>{
-        e.stopPropagation();
-        thumb.style.borderColor='';
-      });
-      thumb.addEventListener('drop',e=>{
-        e.preventDefault();e.stopPropagation();
-        thumb.style.borderColor='';
-        const files=e.dataTransfer.files;
-        if(files&&files.length>0&&files[0].type.startsWith('image/')){
-          handleImageAdd(files[0],scene.id,cut.id);
-        }
-      });
+      thumb.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();thumb.style.borderColor='var(--acc2)'});
+      thumb.addEventListener('dragleave',e=>{e.stopPropagation();thumb.style.borderColor=''});
+      thumb.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();thumb.style.borderColor='';const files=e.dataTransfer.files;if(files&&files.length>0&&files[0].type.startsWith('image/'))handleImageAdd(files[0],scene.id,cut.id)});
 
       card.appendChild(thumb);
-
-      // Actions
       card.appendChild(el('div',{className:'cut-actions'},
         el('button',{onClick:()=>openEdit(scene.id,cut.id)},'✏'),
         el('button',{onClick:()=>dupCut(scene.id,ci)},'⧉'),
-        el('button',{onClick:()=>{/* move - future */}},'→'),
+        el('button',{onClick:()=>{}},'→'),
         el('button',{className:'del-btn',onClick:()=>delCut(scene.id,ci)},'🗑')
       ));
       cutsContainer.appendChild(card);
     }
-
-    // Add cut button
-    const addBtn=el('div',{className:'add-cut',onClick:()=>addCut(scene.id)},el('span',null,'+'));
-    cutsContainer.appendChild(addBtn);
+    cutsContainer.appendChild(el('div',{className:'add-cut',onClick:()=>addCut(scene.id)},el('span',null,'+')));
     sceneEl.appendChild(cutsContainer);
     app.appendChild(sceneEl);
   }
 
-  // Edit modal
-  if(editState.open){
-    const sc=STATE.scenes.find(s=>s.id===editState.sceneId);
-    const cut=sc?sc.cuts.find(c=>c.id===editState.cutId):null;
-    if(cut)renderEditModal(sc,cut);
-  }
-
-  // Overview modal
+  if(editState.open){const sc=STATE.scenes.find(s=>s.id===editState.sceneId);const cut=sc?sc.cuts.find(c=>c.id===editState.cutId):null;if(cut)renderEditModal(sc,cut)}
   if(overviewOpen)renderOverview();
 }
 
 function renderEditModal(scene,cut){
   const app=document.getElementById('app');
-  const bg=el('div',{className:'modal-bg',onClick:e=>{if(e.target===e.currentTarget)closeEdit();}});
+  const bg=el('div',{className:'modal-bg',onClick:e=>{if(e.target===e.currentTarget)closeEdit()}});
   const modal=el('div',{className:'modal'});
   modal.innerHTML=`<h3>${cut.label} — 편집</h3>`;
 
-  // Drive URL
   const fields=[
     {key:'driveUrl',label:'Google Drive 이미지 URL',type:'text',placeholder:'https://drive.google.com/file/d/.../view'},
     {key:'angle',label:'앵글 / 샷 사이즈',type:'text',placeholder:'CU, MS, WS, High angle...'},
@@ -782,97 +569,62 @@ function renderEditModal(scene,cut){
     {key:'note',label:'메모',type:'textarea',placeholder:'기타 참고사항...'},
   ];
 
-  // Preview image
   const preview=el('img',{className:'thumb-preview',style:{display:'none'}});
-  (async()=>{
-    if(cut.driveUrl){preview.src=cut.driveUrl;preview.style.display='block';}
-    else{const d=await idbGet(imgPrefix+cut.id);if(d){preview.src=d;preview.style.display='block';}}
-  })();
+  (async()=>{if(cut.driveUrl){preview.src=cut.driveUrl;preview.style.display='block'}else{const d=await idbGet(imgPrefix+cut.id);if(d){preview.src=d;preview.style.display='block'}}})();
   modal.appendChild(preview);
 
   fields.forEach(f=>{
     modal.appendChild(el('label',null,f.label));
     if(f.type==='textarea'){
-      const ta=el('textarea',{placeholder:f.placeholder});
-      ta.value=cut[f.key]||'';
-      ta.addEventListener('change',e=>{cut[f.key]=e.target.value;});
-      modal.appendChild(ta);
+      const ta=el('textarea',{placeholder:f.placeholder});ta.value=cut[f.key]||'';
+      ta.addEventListener('change',e=>{cut[f.key]=e.target.value});modal.appendChild(ta);
     }else{
       const inp=el('input',{type:'text',placeholder:f.placeholder,value:cut[f.key]||''});
       inp.addEventListener('change',e=>{
         cut[f.key]=e.target.value;
-        if(f.key==='driveUrl'&&e.target.value){
-          // auto-convert drive URL
-          let url=e.target.value;
-          const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-          if(m)url='https://lh3.googleusercontent.com/d/'+m[1];
-          cut.driveUrl=url;
-          preview.src=url;preview.style.display='block';
-          inp.value=url;
-        }
-      });
-      modal.appendChild(inp);
+        if(f.key==='driveUrl'&&e.target.value){let url=e.target.value;const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);if(m)url='https://lh3.googleusercontent.com/d/'+m[1];cut.driveUrl=url;preview.src=url;preview.style.display='block';inp.value=url}
+      });modal.appendChild(inp);
     }
   });
 
-  // Footer
-  const footer=el('div',{className:'modal-footer'},
+  modal.appendChild(el('div',{className:'modal-footer'},
     el('button',{className:'delete',onClick:async()=>{
       if(cut.driveFileId)await deleteDriveFile(cut.driveFileId);
       await idbDelete(imgPrefix+cut.id);
       const s=STATE.scenes.find(x=>x.id===editState.sceneId);
-      if(s){
-        s.cuts=s.cuts.filter(c=>c.id!==cut.id);
-        const si=STATE.scenes.indexOf(s)+1;
-        s.cuts.forEach((c,i)=>{c.label=`S${si}-C${String(i+1).padStart(2,'0')}`;});
-      }
+      if(s){s.cuts=s.cuts.filter(c=>c.id!==cut.id);const si=STATE.scenes.indexOf(s)+1;s.cuts.forEach((c,i)=>{c.label=`S${si}-C${String(i+1).padStart(2,'0')}`})}
       await saveData();closeEdit();showToast('컷 삭제 완료');
     }},'삭제'),
     el('button',{className:'cancel',onClick:closeEdit},'취소'),
-    el('button',{className:'save',onClick:async()=>{await saveData();closeEdit();showToast('저장 완료');}},'저장')
-  );
-  modal.appendChild(footer);
-  bg.appendChild(modal);
-  app.appendChild(bg);
+    el('button',{className:'save',onClick:async()=>{await saveData();closeEdit();showToast('저장 완료')}},'저장')
+  ));
+  bg.appendChild(modal);app.appendChild(bg);
 }
 
 function renderOverview(){
   const app=document.getElementById('app');
-  const bg=el('div',{className:'modal-bg',onClick:e=>{if(e.target===e.currentTarget){overviewOpen=false;render();}}});
+  const bg=el('div',{className:'modal-bg',onClick:e=>{if(e.target===e.currentTarget){overviewOpen=false;render()}}});
   const modal=el('div',{className:'modal',style:{width:'80vw',maxWidth:'900px'}});
   modal.appendChild(el('h3',null,'📋 전체 보기'));
-  
   STATE.scenes.forEach((scene,si)=>{
     modal.appendChild(el('div',{style:{fontSize:'12px',fontFamily:'var(--mono)',color:'var(--acc)',marginTop:'16px',marginBottom:'8px'}},`SCENE ${si+1}  ${scene.title||''}`));
     const grid=el('div',{className:'overview-grid'});
     scene.cuts.forEach(cut=>{
       const item=el('div',{className:'overview-item'});
       const img=el('img',{style:{display:'none'}});
-      (async()=>{
-        if(cut.driveUrl){img.src=cut.driveUrl;img.style.display='block';}
-        else{const d=await idbGet(imgPrefix+cut.id);if(d){img.src=d;img.style.display='block';}}
-      })();
+      (async()=>{if(cut.driveUrl){img.src=cut.driveUrl;img.style.display='block'}else{const d=await idbGet(imgPrefix+cut.id);if(d){img.src=d;img.style.display='block'}}})();
       item.appendChild(img);
       item.appendChild(el('div',{className:'info'},`${cut.label} ${cut.angle||''} ${cut.duration||''}`));
       grid.appendChild(item);
     });
     modal.appendChild(grid);
   });
-
-  const closeBtn=el('button',{className:'btn-head',style:{marginTop:'16px'},onClick:()=>{overviewOpen=false;render();}},'닫기');
-  modal.appendChild(closeBtn);
-  bg.appendChild(modal);
-  app.appendChild(bg);
+  modal.appendChild(el('button',{className:'btn-head',style:{marginTop:'16px'},onClick:()=>{overviewOpen=false;render()}},'닫기'));
+  bg.appendChild(modal);app.appendChild(bg);
 }
 
 // ─── INIT ───
-async function init(){
-  await idbOpen();
-  loadProject();
-  render();
-  loadGapi();
-  loadGis();
-}
+async function init(){await idbOpen();loadProject();render();loadGapi();loadGis()}
 init();
 </script>
 </body>
