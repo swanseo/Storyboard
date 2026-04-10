@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>STORYBOARD — Projects</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;600;700&display=swap');
+:root{
+  --bg:#0e0e10;--s:#18181c;--s2:#222228;--b:#2a2a32;
+  --tx:#e8e6e3;--m:#6b6b78;--m2:#44444e;
+  --acc:#c8f04d;--acc2:#4dc8f0;--danger:#ff4455;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+  --sans:'Noto Sans KR',-apple-system,sans-serif;
+  --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh}
+::selection{background:#c8f04d33}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b);border-radius:3px}
+
+/* ── Header ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 32px;border-bottom:1px solid var(--b);
+  position:sticky;top:0;background:rgba(14,14,16,.94);backdrop-filter:blur(12px);z-index:100;
+}
+.logo{font:700 18px/1 var(--mono);letter-spacing:.18em;color:var(--acc);text-transform:uppercase}
+.logo-sub{font:400 11px/1 var(--mono);color:var(--m);margin-top:4px;letter-spacing:.08em}
+.header-right{display:flex;gap:8px}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font:600 13px/1 var(--sans);border:1px solid var(--b);border-radius:var(--r);
+  padding:8px 16px;cursor:pointer;transition:all .12s;background:var(--s2);color:var(--tx);
+}
+.btn:hover{border-color:var(--m)}
+.btn-acc{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.btn-acc:hover{filter:brightness(1.1)}
+.btn-sm{padding:6px 10px;font-size:11px}
+.btn-icon{
+  background:none;border:none;color:var(--m);padding:5px;cursor:pointer;
+  display:inline-flex;align-items:center;border-radius:4px;transition:color .1s;
+}
+.btn-icon:hover{color:var(--tx)}
+.btn-icon.danger:hover{color:var(--danger)}
+
+/* ── Grid ── */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:20px;padding:32px;
+}
+
+/* ── Project Card ── */
+.card{
+  border:1px solid var(--b);border-radius:14px;background:var(--s);
+  overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;
+  display:flex;flex-direction:column;
+}
+.card:hover{border-color:var(--m);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.card-thumb{
+  width:100%;aspect-ratio:16/9;background:var(--s2);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.card-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.card:hover .card-thumb img{transform:scale(1.03)}
+.card-thumb .empty-thumb{color:var(--m2);font:400 11px/1.4 var(--mono);text-align:center}
+.card-color{height:3px;width:100%}
+.card-body{padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:8px}
+.card-name{font:700 15px/1.3 var(--sans);color:var(--tx)}
+.card-folder{font:400 11px/1 var(--mono);color:var(--m);letter-spacing:.04em}
+.card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:8px}
+.card-pill{
+  font:600 10px/1 var(--mono);padding:3px 8px;border-radius:6px;
+  background:rgba(200,240,77,.08);color:var(--acc);border:1px solid rgba(200,240,77,.15);
+}
+.card-pill.blue{background:rgba(77,200,240,.08);color:var(--acc2);border-color:rgba(77,200,240,.15)}
+.card-pill.muted{background:var(--s2);color:var(--m);border-color:var(--b)}
+.card-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 18px;border-top:1px solid var(--b);
+}
+.card-date{font:400 10px/1 var(--mono);color:var(--m2)}
+.card-actions{display:flex;gap:2px}
+
+/* ── New Card ── */
+.card-new{
+  border:2px dashed var(--b);background:transparent;
+  display:flex;align-items:center;justify-content:center;min-height:260px;
+  transition:border-color .15s;
+}
+.card-new:hover{border-color:var(--acc)}
+.card-new-inner{text-align:center;color:var(--m)}
+.card-new-inner .plus{font-size:36px;color:var(--b);margin-bottom:8px;transition:color .15s}
+.card-new:hover .plus{color:var(--acc)}
+.card-new-inner p{font:400 13px/1.4 var(--sans)}
+
+/* ── Modal ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.modal{
+  background:var(--s);border:1px solid var(--b);border-radius:14px;
+  width:100%;max-width:500px;overflow:hidden;
+}
+.modal-hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;border-bottom:1px solid var(--b);
+}
+.modal-hdr h2{font:700 16px/1.3 var(--sans)}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field span{font:400 11px/1 var(--mono);color:var(--m);text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{
+  background:var(--s2);border:1px solid var(--b);border-radius:8px;
+  padding:10px 12px;font:13px/1.4 var(--sans);color:var(--tx);outline:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--acc)}
+.color-row{display:flex;gap:8px}
+.color-dot{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;
+  transition:border-color .1s,transform .1s;
+}
+.color-dot:hover{transform:scale(1.15)}
+.color-dot.sel{border-color:#fff}
+.modal-foot{
+  display:flex;justify-content:flex-end;gap:8px;
+  padding:12px 20px;border-top:1px solid var(--b);
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--acc);color:var(--bg);padding:8px 22px;border-radius:8px;
+  font:600 13px/1 var(--mono);z-index:500;box-shadow:0 4px 24px rgba(0,0,0,.5);
+  animation:toastIn .25s ease;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}}
+
+/* ── Empty ── */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;gap:16px;text-align:center;padding:32px;
+}
+.empty-state p{color:var(--m);font:400 14px/1.6 var(--sans);max-width:400px}
+
+@media(max-width:600px){
+  .grid{grid-template-columns:1fr;padding:16px}
+  .header{padding:16px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  STORYBOARD PROJECT DASHBOARD
+// ═══════════════════════════════════════
+
+const COLORS = ['#c8f04d','#4dc8f0','#c084fc','#f97316','#f43f5e','#14b8a6','#facc15','#60a5fa'];
+const TYPES = [
+  {value:'board', label:'스토리보드 편집 (Board)'},
+  {value:'viewer', label:'시네마틱 뷰어 (Viewer)'}
+];
+
+let projects = [];
+let modal = null; // null | {mode:'new'} | {mode:'edit', id:...}
+let toast = null;
+
+// ── Persistence ──
+function save(){ localStorage.setItem('sb-projects', JSON.stringify(projects)); }
+function load(){
+  try {
+    const raw = localStorage.getItem('sb-projects');
+    if(raw) projects = JSON.parse(raw);
+  } catch(e){}
+
+  // Auto-migrate: if old single-project data exists, wrap it
+  if(projects.length===0){
+    const old = localStorage.getItem('sb-local-v1');
+    if(old){
+      const id = uid();
+      projects.push({
+        id, name:'기존 프로젝트', type:'board', folder:'Legacy',
+        color:'#c8f04d', driveFolder:'',
+        thumbnail:'', cutCount:0,
+        createdAt: new Date().toISOString().slice(0,10),
+        updatedAt: new Date().toISOString().slice(0,10)
+      });
+      // Move data to project-specific key
+      localStorage.setItem('sb-data-'+id, old);
+      save();
+    }
+  }
+}
+
+const uid = () => Math.random().toString(36).slice(2,10);
+function now(){ return new Date().toISOString().slice(0,10); }
+
+// ── Count cuts for a project ──
+function countCuts(projId){
+  try {
+    const raw = localStorage.getItem('sb-data-'+projId);
+    if(!raw) return 0;
+    const d = JSON.parse(raw);
+    if(d.scenes) return d.scenes.reduce((s,sc)=>s+(sc.cuts?sc.cuts.length:0),0);
+    if(Array.isArray(d)) return d.reduce((s,sc)=>s+(sc.cuts?sc.cuts.length:0),0);
+  } catch(e){}
+  return 0;
+}
+
+// ══════════════════
+//  RENDER
+// ══════════════════
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  app.appendChild(renderHeader());
+
+  if(projects.length===0 && !modal){
+    app.appendChild(renderEmpty());
+  } else {
+    app.appendChild(renderGrid());
+  }
+
+  if(modal) app.appendChild(renderModal());
+  if(toast) app.appendChild(renderToast());
+}
+
+// ── Helpers ──
+function el(tag, attrs, ...ch){
+  const e = document.createElement(tag);
+  if(attrs) Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='className') e.className=v;
+    else if(k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==='style'&&typeof v==='object') Object.assign(e.style,v);
+    else e.setAttribute(k,v);
+  });
+  ch.flat().forEach(c=>{ if(c!=null) e.appendChild(typeof c==='string'?document.createTextNode(c):c); });
+  return e;
+}
+
+function svgIcon(d,size=16){
+  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('width',size);s.setAttribute('height',size);
+  s.setAttribute('viewBox','0 0 24 24');s.setAttribute('fill','none');
+  s.setAttribute('stroke','currentColor');s.setAttribute('stroke-width','2');
+  s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',d);s.appendChild(p);return s;
+}
+
+const ICO={
+  plus:'M12 5v14M5 12h14',
+  trash:'M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z',
+  edit:'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z',
+  copy:'M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2v-2M16 4h2a2 2 0 012 2v12M12 2h4l4 4v8a2 2 0 01-2 2h-6a2 2 0 01-2-2V4a2 2 0 012-2z',
+  x:'M18 6L6 18M6 6l12 12',
+  folder:'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z',
+  export:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3',
+  import:'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12',
+  board:'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z',
+  film:'M2 12h4M18 12h4M2 6h4M18 6h4M2 18h4M18 18h4M6 2v20M18 2v20M6 2h12a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z',
+};
+
+// ── Header ──
+function renderHeader(){
+  return el('header',{className:'header'},
+    el('div',null,
+      el('div',{className:'logo'},'STORYBOARD'),
+      el('div',{className:'logo-sub'},`${projects.length} PROJECTS`)
+    ),
+    el('div',{className:'header-right'},
+      el('button',{className:'btn',onClick:importAllJSON},svgIcon(ICO.import,14),'전체 불러오기'),
+      el('button',{className:'btn btn-acc',onClick:()=>{modal={mode:'new',data:newProjectData()};render();}},svgIcon(ICO.plus,14),'새 프로젝트')
+    )
+  );
+}
+
+function newProjectData(){
+  return {id:uid(),name:'',type:'board',folder:'',color:COLORS[0],driveFolder:'',thumbnail:'',createdAt:now(),updatedAt:now()};
+}
+
+// ── Grid ──
+function renderGrid(){
+  const g = el('div',{className:'grid'});
+
+  projects.forEach(p=>{
+    const cuts = countCuts(p.id);
+    const card = el('div',{className:'card',onClick:()=>openProject(p)});
+
+    // Thumbnail
+    const thumb = el('div',{className:'card-thumb'});
+    if(p.thumbnail){
+      thumb.appendChild(el('img',{src:convertDriveUrl(p.thumbnail),alt:'',onError:(e)=>{e.target.style.display='none'}}));
+    } else {
+      thumb.appendChild(el('div',{className:'empty-thumb'},
+        svgIcon(p.type==='viewer'?ICO.film:ICO.board,32),
+        el('br'),
+        p.type==='viewer'?'VIEWER':'BOARD'
+      ));
+    }
+    card.appendChild(thumb);
+
+    // Color bar
+    card.appendChild(el('div',{className:'card-color',style:{background:p.color||COLORS[0]}}));
+
+    // Body
+    const body = el('div',{className:'card-body'});
+    body.appendChild(el('div',{className:'card-name'},p.name||'이름 없음'));
+    if(p.folder) body.appendChild(el('div',{className:'card-folder'},'📁 '+p.folder));
+
+    const meta = el('div',{className:'card-meta'});
+    meta.appendChild(el('span',{className:'card-pill'},p.type==='viewer'?'VIEWER':'BOARD'));
+    meta.appendChild(el('span',{className:'card-pill blue'},cuts+' cuts'));
+    if(p.driveFolder) meta.appendChild(el('span',{className:'card-pill muted'},'Drive 연동'));
+    body.appendChild(meta);
+    card.appendChild(body);
+
+    // Footer
+    const footer = el('div',{className:'card-footer'});
+    footer.appendChild(el('span',{className:'card-date'},'수정 '+p.updatedAt));
+    const actions = el('div',{className:'card-actions'});
+    actions.appendChild(el('button',{className:'btn-icon',title:'편집',onClick:(e)=>{e.stopPropagation();modal={mode:'edit',data:{...p}};render();}},svgIcon(ICO.edit,14)));
+    actions.appendChild(el('button',{className:'btn-icon',title:'복제',onClick:(e)=>{e.stopPropagation();dupProject(p.id);}},svgIcon(ICO.copy,14)));
+    actions.appendChild(el('button',{className:'btn-icon',title:'내보내기',onClick:(e)=>{e.stopPropagation();exportProject(p.id);}},svgIcon(ICO.export,14)));
+    actions.appendChild(el('button',{className:'btn-icon danger',title:'삭제',onClick:(e)=>{e.stopPropagation();delProject(p.id);}},svgIcon(ICO.trash,14)));
+    footer.appendChild(actions);
+    card.appendChild(footer);
+
+    g.appendChild(card);
+  });
+
+  // New project card
+  const newCard = el('div',{className:'card card-new',onClick:()=>{modal={mode:'new',data:newProjectData()};render();}});
+  newCard.appendChild(el('div',{className:'card-new-inner'},
+    el('div',{className:'plus'},'+'),
+    el('p',null,'새 프로젝트 추가')
+  ));
+  g.appendChild(newCard);
+
+  return g;
+}
+
+// ── Modal ──
+function renderModal(){
+  const d = modal.data;
+  const isNew = modal.mode==='new';
+
+  const ov = el('div',{className:'overlay',onClick:()=>{modal=null;render();}});
+  const m = el('div',{className:'modal',onClick:e=>e.stopPropagation()});
+
+  m.appendChild(el('div',{className:'modal-hdr'},
+    el('h2',null,isNew?'새 프로젝트':'프로젝트 편집'),
+    el('button',{className:'btn-icon',onClick:()=>{modal=null;render();}},svgIcon(ICO.x,18))
+  ));
+
+  const body = el('div',{className:'modal-body'});
+
+  // Name
+  body.appendChild(fieldInput('프로젝트 이름','name',d.name,'프로젝트 이름을 입력하세요'));
+
+  // Type
+  const typeField = el('div',{className:'field'});
+  typeField.appendChild(el('span',null,'프로젝트 타입'));
+  const sel = el('select',{onChange:e=>{d.type=e.target.value;}});
+  TYPES.forEach(t=>{
+    const opt = el('option',{value:t.value},t.label);
+    if(d.type===t.value) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  typeField.appendChild(sel);
+  body.appendChild(typeField);
+
+  // Folder
+  body.appendChild(fieldInput('폴더명','folder',d.folder,'예: BrandA_LaunchFilm'));
+
+  // Drive Folder ID
+  body.appendChild(fieldInput('구글 드라이브 폴더 URL (선택)','driveFolder',d.driveFolder,'https://drive.google.com/drive/folders/xxxxx'));
+
+  // Thumbnail URL
+  body.appendChild(fieldInput('대표 이미지 URL (선택)','thumbnail',d.thumbnail,'구글 드라이브 이미지 공유 링크 또는 URL'));
+
+  // Color
+  const colorField = el('div',{className:'field'});
+  colorField.appendChild(el('span',null,'프로젝트 컬러'));
+  const colorRow = el('div',{className:'color-row'});
+  COLORS.forEach(c=>{
+    const dot = el('div',{
+      className:'color-dot'+(d.color===c?' sel':''),
+      style:{background:c},
+      onClick:()=>{d.color=c;render();}
+    });
+    colorRow.appendChild(dot);
+  });
+  colorField.appendChild(colorRow);
+  body.appendChild(colorField);
+
+  m.appendChild(body);
+
+  // Footer
+  const foot = el('div',{className:'modal-foot'});
+  foot.appendChild(el('button',{className:'btn',onClick:()=>{modal=null;render();}},'취소'));
+  foot.appendChild(el('button',{className:'btn btn-acc',onClick:()=>saveProject(d,isNew)},isNew?'프로젝트 생성':'변경 사항 저장'));
+  m.appendChild(foot);
+
+  ov.appendChild(m);
+  return ov;
+
+  function fieldInput(label,key,val,ph){
+    const f = el('div',{className:'field'});
+    f.appendChild(el('span',null,label));
+    f.appendChild(el('input',{type:'text',value:val||'',placeholder:ph||'',
+      onInput:e=>{d[key]=e.target.value;}}));
+    return f;
+  }
+}
+
+// ── Toast ──
+function renderToast(){ return el('div',{className:'toast'},toast); }
+function showToast(msg){ toast=msg;render();setTimeout(()=>{toast=null;render();},2000); }
+
+// ── Empty ──
+function renderEmpty(){
+  return el('div',{className:'empty-state'},
+    svgIcon(ICO.folder,48),
+    el('p',null,'아직 프로젝트가 없습니다.\n첫 번째 프로젝트를 만들어 스토리보드를 시작하세요.'),
+    el('button',{className:'btn btn-acc',onClick:()=>{modal={mode:'new',data:newProjectData()};render();}},svgIcon(ICO.plus,14),'첫 프로젝트 만들기')
+  );
+}
+
+// ══════════════════
+//  ACTIONS
+// ══════════════════
+function saveProject(d,isNew){
+  if(!d.name.trim()){alert('프로젝트 이름을 입력해주세요.');return;}
+  d.updatedAt = now();
+  if(isNew){
+    d.createdAt = now();
+    projects.push(d);
+  } else {
+    projects = projects.map(p=>p.id===d.id?d:p);
+  }
+  save();modal=null;render();
+  showToast(isNew?'프로젝트 생성 완료':'변경 사항 저장 완료');
+}
+
+function delProject(id){
+  const p = projects.find(x=>x.id===id);
+  if(!confirm(`"${p?.name||'이 프로젝트'}"를 삭제할까요?\n스토리보드 데이터도 함께 삭제됩니다.`)) return;
+  projects = projects.filter(x=>x.id!==id);
+  localStorage.removeItem('sb-data-'+id);
+  save();render();
+  showToast('프로젝트 삭제 완료');
+}
+
+function dupProject(id){
+  const p = projects.find(x=>x.id===id);
+  if(!p) return;
+  const np = {...p, id:uid(), name:p.name+' (복사)', createdAt:now(), updatedAt:now()};
+  // Copy data
+  const data = localStorage.getItem('sb-data-'+id);
+  if(data) localStorage.setItem('sb-data-'+np.id, data);
+  projects.push(np);
+  save();render();
+  showToast('프로젝트 복제 완료');
+}
+
+function openProject(p){
+  const page = p.type==='viewer' ? 'viewer.html' : 'board.html';
+  window.location.href = page + '?project=' + p.id;
+}
+
+// ── Drive URL converter ──
+function convertDriveUrl(url){
+  if(!url) return '';
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return 'https://lh3.googleusercontent.com/d/'+m[1];
+  const m2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+  if(m2) return 'https://lh3.googleusercontent.com/d/'+m2[1];
+  return url;
+}
+
+// ── Export single project ──
+function exportProject(id){
+  const p = projects.find(x=>x.id===id);
+  if(!p) return;
+  const data = localStorage.getItem('sb-data-'+id);
+  const out = { project:p, storyboardData: data?JSON.parse(data):null };
+  const blob = new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(p.folder||p.name||'project')+'.json';
+  a.click();
+  showToast('내보내기 완료: '+(p.name||p.folder));
+}
+
+// ── Import JSON (project) ──
+function importAllJSON(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json';inp.multiple=true;
+  inp.onchange=e=>{
+    [...e.target.files].forEach(f=>{
+      const r=new FileReader();
+      r.onload=()=>{
+        try{
+          const d=JSON.parse(r.result);
+          if(d.project && d.project.id){
+            // Full project export format
+            const np = {...d.project, id:uid(), updatedAt:now()};
+            if(d.storyboardData) localStorage.setItem('sb-data-'+np.id, JSON.stringify(d.storyboardData));
+            projects.push(np);
+          } else if(d.scenes || d.baseFolder){
+            // Old board.html format — wrap as project
+            const np = {id:uid(),name:f.name.replace('.json',''),type:'board',folder:'',color:COLORS[0],driveFolder:'',thumbnail:'',createdAt:now(),updatedAt:now()};
+            localStorage.setItem('sb-data-'+np.id, JSON.stringify(d));
+            projects.push(np);
+          }
+          save();render();
+          showToast('불러오기 완료');
+        }catch(err){alert('JSON 파싱 에러: '+err.message);}
+      };
+      r.readAsText(f);
+    });
+  };
+  inp.click();
+}
+
+// ── INIT ──
+load();
+render();
+</script>
+</body>
+</html>
